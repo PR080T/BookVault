@@ -28,7 +28,7 @@ services:
       - key: EXPORT_FOLDER
         value: /tmp/export_data
       - key: PYTHONPATH
-        value: /opt/render/project/src/backend
+        value: /opt/render/project/src/backend:/opt/render/project/src
       - key: PYTHONUNBUFFERED
         value: 1
       - key: FRONTEND_URL

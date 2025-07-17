@@ -474,7 +474,9 @@ def initialize_database() -> None:
         raise
 
 
-if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT"):
+# Skip database initialization during import to avoid Gunicorn worker issues
+# Database will be initialized by Flask-Migrate during deployment
+if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT") and __name__ == "__main__":
     prod = (os.getenv("RENDER") == "true" or
             os.getenv("FLASK_ENV") == "production")
     attempts, delay, max_retries = 0, 3 if prod else 5, 5 if prod else 3
@@ -495,7 +497,8 @@ if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT"):
                         f"Database initialization failed after {max_retries} "
                         f"attempts: {e}"
                     )
-                    raise
+                    # Don't raise in production, let Flask-Migrate handle it
+                    app.logger.warning("Continuing without DB init, Flask-Migrate will handle it")
                 else:
                     app.logger.warning(
                         f"Skipping DB init after {max_retries} attempts: {e}"

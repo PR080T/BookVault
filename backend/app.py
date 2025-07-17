@@ -48,7 +48,21 @@ except ImportError:
         tomllib = None
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS with environment-based origins
+def get_cors_origins():
+    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+    origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+    # Add localhost for development
+    if not origins or os.getenv("FLASK_ENV") != "production":
+        origins.extend(["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"])
+    return origins
+
+CORS(app, 
+     origins=get_cors_origins(),
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
 
 # Configure logging for production
 if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":
@@ -86,6 +100,10 @@ def after_request(response):
     is_production = (os.getenv("RENDER") == "true" or
                      os.getenv("FLASK_ENV") == "production")
     
+    # Get allowed origins from environment variable
+    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+    allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+    
     # Always add CORS headers for better compatibility
     origin = request.headers.get('Origin')
     if origin:
@@ -95,6 +113,9 @@ def after_request(response):
                 any('.vercel.app' in str(allowed_origin) for allowed_origin in allowed_origins)):
             response.headers['Access-Control-Allow-Origin'] = origin
             response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            response.headers['Access-Control-Max-Age'] = '86400'
     
     # Add caching headers for API responses
     if request.endpoint and request.method == 'GET':
@@ -150,6 +171,26 @@ app.register_blueprint(files_endpoint)
 app.register_blueprint(settings_endpoint)
 app.register_blueprint(auth_endpoint)
 app.register_blueprint(user_endpoint)
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        # Get allowed origins from environment variable
+        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+        allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+        
+        origin = request.headers.get('Origin')
+        if origin and (origin in allowed_origins or 
+                      origin.endswith('.vercel.app') or
+                      any('.vercel.app' in str(allowed_origin) for allowed_origin in allowed_origins)):
+            response = jsonify({})
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+            response.headers['Access-Control-Max-Age'] = '86400'
+            return response
 
 
 @app.errorhandler(404)

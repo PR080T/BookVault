@@ -32,7 +32,7 @@ services:
       - key: PYTHONUNBUFFERED
         value: 1
       - key: FRONTEND_URL
-        value: https://book-vault-pi.vercel.app
+        value: https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app
       - key: ALLOWED_ORIGINS
         value: https://book-vault-pi.vercel.app,https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app
 

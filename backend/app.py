@@ -48,6 +48,7 @@ except ImportError:
         tomllib = None
 
 app = Flask(__name__)
+CORS(app)
 
 # Configure logging for production
 if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":
@@ -60,60 +61,7 @@ else:
     logging.basicConfig(level=logging.DEBUG)
     app.logger.setLevel(logging.DEBUG)
 
-# Enable CORS
-allowed_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001", 
-    "http://localhost:5173",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    os.getenv("FRONTEND_URL", "")
-]
-allowed_origins = [origin for origin in allowed_origins if origin]
 
-# Add Vercel deployment domains
-frontend_url = os.getenv("FRONTEND_URL", "")
-if frontend_url:
-    allowed_origins.append(frontend_url)
-    
-if "vercel.app" in frontend_url:
-    base_domain = frontend_url.split("//")[-1]
-    app_name = base_domain.split(".")[0] if "." in base_domain else base_domain
-    allowed_origins.extend([
-        f"https://{app_name}-*.vercel.app",
-        f"https://*.{base_domain}",
-        "https://*.vercel.app"  # Allow all Vercel preview deployments
-    ])
-
-# Production CORS configuration
-is_production = (os.getenv("RENDER") == "true" or
-                 os.getenv("FLASK_ENV") == "production")
-
-# Enhanced CORS configuration for better compatibility
-cors_config = {
-    'origins': allowed_origins,
-    'supports_credentials': True,
-    'allow_headers': [
-        "Content-Type", 
-        "Authorization", 
-        "X-Requested-With",
-        "Accept",
-        "Origin",
-        "X-CSRF-Token"
-    ],
-    'methods': ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    'expose_headers': ["Content-Range", "X-Content-Range"],
-    'max_age': 86400  # 24 hours preflight cache
-}
-
-if is_production:
-    CORS(app, **cors_config)
-else:
-    # More permissive in development
-    cors_config['origins'] = (
-        allowed_origins + ["*"] if not allowed_origins else allowed_origins
-    )
-    CORS(app, **cors_config)
 
 # Load configuration
 app.config.from_object(Config())

@@ -5,7 +5,7 @@ services:
     name: bookvault-api
     env: python
     buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: cd backend && python -m flask db upgrade && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --access-logfile - --error-logfile - --log-level debug wsgi:application
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --access-logfile - --error-logfile - --log-level info wsgi:application
     envVars:
       - key: FLASK_APP
         value: app
@@ -32,7 +32,9 @@ services:
       - key: PYTHONUNBUFFERED
         value: 1
       - key: FRONTEND_URL
-        value: https://bookvault-frontend.vercel.app
+        value: https://book-vault-pi.vercel.app
+      - key: ALLOWED_ORIGINS
+        value: https://book-vault-pi.vercel.app,https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app
 
 # Database
 databases:

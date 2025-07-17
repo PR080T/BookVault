@@ -25,16 +25,8 @@ def create_application():
         from app import app
         logger.info("Successfully imported main application")
         
-        # Initialize database in application context
-        with app.app_context():
-            try:
-                from db import db
-                # Test database connection
-                db.session.execute(db.text("SELECT 1"))
-                logger.info("Database connection successful")
-            except Exception as db_error:
-                logger.error(f"Database connection failed: {db_error}")
-                # Don't fail completely, let the app start and handle DB errors gracefully
+        # Skip database initialization during startup to prevent 500 errors
+        logger.info("Skipping database connection test during startup")
         
         return app
         

@@ -1,0 +1,72 @@
+{
+  "name": "bookvault-frontend",
+  "version": 2,
+  "buildCommand": "npm run build:prod",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/icon.svg",
+      "headers": {
+        "cache-control": "max-age=86400"
+      }
+    },
+    {
+      "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot))",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_API_ENDPOINT": "https://bookvault-api.onrender.com",
+    "VITE_AUTH_API_URL": "https://bookvault-api.onrender.com",
+    "VITE_DISABLE_HOMEPAGE": "false",
+    "VITE_DEMO_MODE": "false"
+  },
+  "functions": {
+    "app/api/**/*.js": {
+      "maxDuration": 30
+    }
+  }
+}

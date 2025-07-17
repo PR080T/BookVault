@@ -1,0 +1,23 @@
+[flake8]
+max-line-length = 88
+exclude = 
+    migrations/,
+    __pycache__/,
+    .git/,
+    .venv/,
+    venv/,
+    env/,
+    .env/
+ignore = 
+    E203,  # whitespace before ':'
+    E501,  # line too long (handled by max-line-length)
+    W503,  # line break before binary operator
+    E302,  # expected 2 blank lines, found N
+    E303,  # too many blank lines
+    F401,  # imported but unused
+    F403,  # star import used
+per-file-ignores =
+    __init__.py:F401,F403
+    init_db.py:F401,F403,E402
+    models.py:E302,E303
+    app.py:E402

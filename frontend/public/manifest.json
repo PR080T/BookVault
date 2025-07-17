@@ -1,0 +1,60 @@
+{
+  "name": "BookVault - Personal Book Tracker",
+  "short_name": "BookVault",
+  "description": "A personal book tracking web app to log and manage your reading journey",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["books", "education", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/new-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/social-card.png",
+      "type": "image/png",
+      "sizes": "1200x630",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Book",
+      "short_name": "Add Book",
+      "description": "Quickly add a new book to your library",
+      "url": "/library?quick_add=true",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "My Library",
+      "short_name": "Library",
+      "description": "View your book collection",
+      "url": "/library",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

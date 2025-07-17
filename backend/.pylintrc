@@ -1,0 +1,52 @@
+[MASTER]
+# Add files or directories to the blacklist. They should be base names, not paths.
+ignore=migrations,__pycache__
+
+# Python code to execute, usually for sys.path manipulation
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=import-error,
+        missing-module-docstring,
+        missing-class-docstring,
+        missing-function-docstring,
+        too-few-public-methods,
+        no-member,
+        unused-import,
+        wildcard-import,
+        unused-wildcard-import
+
+[TYPECHECK]
+# List of module names for which member attributes should not be checked
+ignored-modules=alembic.context,alembic,flask_sqlalchemy,sqlalchemy
+
+# List of class names for which member attributes should not be checked
+ignored-classes=alembic.context,SQLObject,scoped_session
+
+# Generate missing member hints for these modules
+generated-members=alembic.context.*,db.*,ma.*
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=79
+
+# String used as indentation unit.
+indent-string='    '
+
+# Number of spaces of indent required inside a hanging or continued line.
+indent-after-paren=4
+
+[BASIC]
+# Good variable names which should always be accepted, separated by a comma.
+good-names=i,j,k,ex,Run,_,db,ma,app,id
+
+[DESIGN]
+# Maximum number of arguments for function / method.
+max-args=7
+
+# Maximum number of attributes for a class
+max-attributes=10
+
+# Maximum number of public methods for a class
+max-public-methods=25

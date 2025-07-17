@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Elegant gradient background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#334155;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#475569;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGradient)" />
+  
+  <!-- Elegant book design -->
+  <!-- Main book -->
+  <rect x="140" y="180" width="232" height="280" rx="12" fill="url(#bookGradient)" />
+  <rect x="140" y="180" width="232" height="280" rx="12" stroke="#cbd5e1" stroke-width="2" fill="none" />
+  
+  <!-- Book spine detail -->
+  <rect x="140" y="180" width="24" height="280" rx="12" fill="url(#accentGradient)" />
+  
+  <!-- Book pages effect -->
+  <rect x="148" y="188" width="216" height="264" rx="8" fill="#ffffff" opacity="0.9" />
+  <rect x="156" y="196" width="200" height="248" rx="6" fill="#f1f5f9" opacity="0.8" />
+  
+  <!-- Elegant text lines on the book -->
+  <rect x="180" y="220" width="120" height="3" rx="1.5" fill="#64748b" opacity="0.6" />
+  <rect x="180" y="240" width="140" height="3" rx="1.5" fill="#64748b" opacity="0.4" />
+  <rect x="180" y="260" width="100" height="3" rx="1.5" fill="#64748b" opacity="0.4" />
+  
+  <!-- Bookmark ribbon -->
+  <rect x="320" y="180" width="16" height="120" fill="url(#accentGradient)" />
+  <path d="M320 300 L328 290 L336 300 Z" fill="url(#accentGradient)" />
+  
+  <!-- Subtle shadow effect -->
+  <ellipse cx="256" cy="470" rx="80" ry="12" fill="#1e293b" opacity="0.3" />
+  
+  <!-- Minimalist vault element -->
+  <circle cx="256" cy="120" r="32" fill="url(#accentGradient)" opacity="0.8" />
+  <circle cx="256" cy="120" r="20" fill="none" stroke="#f8fafc" stroke-width="3" />
+  <circle cx="256" cy="120" r="8" fill="#f8fafc" />
+</svg>

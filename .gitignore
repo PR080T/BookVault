@@ -1,5 +1,6 @@
 # Python
 __pycache__
+*.pyc
 *.py[cod]
 *$py.class
 *.so
@@ -83,3 +84,18 @@ docker-compose.override.yml
 *.db
 *.sqlite
 *.sqlite3
+
+# Test and debug files
+*test*.py
+*debug*.py
+*health*.py
+test_*
+debug_*
+health_*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+*~

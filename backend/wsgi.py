@@ -21,26 +21,48 @@ os.environ.setdefault('SKIP_DB_INIT', 'true')  # Skip DB init during import
 def create_application():  # Function: create_application
     """Create and configure the Flask application"""
     try:
-  # Import the main app
+        # Set up environment for production
+        os.environ.setdefault('FLASK_ENV', 'production')
+        os.environ.setdefault('FLASK_DEBUG', 'false')
+        
+        # Import the main app
         from app import app
         logger.info("Successfully imported main application")
         
-  # Skip database initialization during startup to prevent 500 errors
-        logger.info("Skipping database connection test during startup")
+        # Test that routes are registered
+        routes = [str(rule) for rule in app.url_map.iter_rules()]
+        logger.info(f"Registered {len(routes)} routes")
+        
+        # Log key routes for debugging
+        key_routes = [r for r in routes if any(endpoint in r for endpoint in ['/', '/health', '/v1/books'])]
+        logger.info(f"Key routes available: {key_routes}")
+        
+        # Verify app configuration
+        logger.info(f"App name: {app.name}")
+        logger.info(f"Debug mode: {app.debug}")
+        logger.info(f"Environment: {os.getenv('FLASK_ENV', 'unknown')}")
         
         return app
         
     except Exception as e:
         logger.error(f"Failed to import main application: {e}")
         logger.error(f"Error details: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         
-  # Fallback to simple app
+        # Fallback to simple app
         try:
-            from simple_app import app
+            from simple_app import app as simple_app
             logger.info("Using simple application as fallback")
-            return app
+            
+            # Test simple app routes
+            simple_routes = [str(rule) for rule in simple_app.url_map.iter_rules()]
+            logger.info(f"Simple app has {len(simple_routes)} routes: {simple_routes}")
+            
+            return simple_app
         except Exception as e2:
             logger.error(f"Failed to import simple application: {e2}")
+            logger.error(f"Simple app error details: {str(e2)}")
             raise RuntimeError(f"Failed to start application: {e}")
 
   # Create the application

@@ -1,7 +1,7 @@
 import axios from 'axios';  // HTTP client for API calls
 
   // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || 'http:  // localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
 
   // Ensure URL doesn't end with slash for consistent API calls
 const normalizedURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;

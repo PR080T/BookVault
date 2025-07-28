@@ -89,19 +89,31 @@ def cors_origin_handler(origin):
     """Custom origin handler to support wildcards"""
     allowed_origins = get_cors_origins()
     
+    # Log origin for debugging
+    app.logger.info(f"CORS check for origin: {origin}")
+    
     # Check exact matches first
     if origin in allowed_origins:
+        app.logger.info(f"Origin allowed (exact match): {origin}")
         return True
     
     # Check wildcard patterns
     if origin and origin.endswith('.vercel.app'):
         # Allow any Vercel deployment
+        app.logger.info(f"Origin allowed (Vercel): {origin}")
         return True
     
     # Allow localhost in development
     if origin and ('localhost' in origin or '127.0.0.1' in origin):
+        app.logger.info(f"Origin allowed (localhost): {origin}")
         return True
     
+    # Allow null origin for direct API access
+    if origin is None:
+        app.logger.info("Origin allowed (null/direct access)")
+        return True
+    
+    app.logger.warning(f"Origin blocked: {origin}")
     return False
 
   # Configure CORS with specific settings and custom origin handler
@@ -216,18 +228,7 @@ def not_found(error):
     }), 404
 
 
-@app.errorhandler(500)
-def internal_error(error):
-    try:
-        db.session.rollback()
-    except Exception as rollback_error:
-        app.logger.error(f"Failed to rollback session: {rollback_error}")
-    
-    app.logger.error(f"Internal server error: {error}")
-    return jsonify({
-        'error': 'Internal Server Error',
-        'message': 'An unexpected error occurred.'
-    }), 500
+
 
 
 @app.errorhandler(400)
@@ -271,14 +272,7 @@ def too_many_requests(error):
     }), 429
 
 
-@app.route("/health")
-def health_check() -> Dict[str, Any]:
-    """Health check endpoint for monitoring and connection testing"""
-    return {
-        "status": "healthy",
-        "message": "BookVault API is running",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+
 
 @app.route("/")
 def index() -> Dict[str, Any]:
@@ -328,6 +322,36 @@ def get_csrf_token():
     token = secrets.token_urlsafe(32)
     return jsonify({"csrf_token": token}), 200
 
+
+@app.route("/debug/routes")
+def debug_routes():
+    """Debug endpoint to show all registered routes"""
+    if os.getenv("FLASK_ENV") != "production":
+        routes = []
+        for rule in app.url_map.iter_rules():
+            routes.append({
+                "rule": str(rule),
+                "methods": list(rule.methods),
+                "endpoint": rule.endpoint
+            })
+        return jsonify({
+            "total_routes": len(routes),
+            "routes": routes,
+            "app_name": app.name,
+            "debug": app.debug
+        })
+    else:
+        return jsonify({"error": "Debug endpoint disabled in production"}), 404
+
+
+@app.route("/ping")
+def ping():
+    """Simple ping endpoint for basic health check"""
+    return jsonify({
+        "status": "ok",
+        "message": "BookVault API is running",
+        "timestamp": datetime.now().isoformat()
+    })
 
 @app.route("/health")
 def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
@@ -489,41 +513,50 @@ def initialize_database() -> None:
 
   # Skip database initialization during import to avoid Gunicorn worker issues
   # Database will be initialized by Flask-Migrate during deployment
-if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT") and __name__ == "__main__":
-    prod = (os.getenv("RENDER") == "true" or
-            os.getenv("FLASK_ENV") == "production")
-    attempts, delay, max_retries = 0, 3 if prod else 5, 5 if prod else 3
+def init_database_if_needed():
+    """Initialize database only when explicitly called"""
+    if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT"):
+        prod = (os.getenv("RENDER") == "true" or
+                os.getenv("FLASK_ENV") == "production")
+        attempts, delay, max_retries = 0, 3 if prod else 5, 5 if prod else 3
 
-    while attempts < max_retries:
-        try:
-            with app.app_context():
-                initialize_database()
-                app.logger.info(
-                    "Database initialization completed successfully"
-                )
-                break
-        except Exception as e:
-            attempts += 1
-            if attempts >= max_retries:
-                if prod:
-                    app.logger.error(
-                        f"Database initialization failed after {max_retries} "
-                        f"attempts: {e}"
+        while attempts < max_retries:
+            try:
+                with app.app_context():
+                    initialize_database()
+                    app.logger.info(
+                        "Database initialization completed successfully"
                     )
-  # Don't raise in production, let Flask-Migrate handle it
-                    app.logger.warning("Continuing without DB init, Flask-Migrate will handle it")
+                    return True
+            except Exception as e:
+                attempts += 1
+                if attempts >= max_retries:
+                    if prod:
+                        app.logger.error(
+                            f"Database initialization failed after {max_retries} "
+                            f"attempts: {e}"
+                        )
+                        # Don't raise in production, let Flask-Migrate handle it
+                        app.logger.warning("Continuing without DB init, Flask-Migrate will handle it")
+                        return False
+                    else:
+                        app.logger.warning(
+                            f"Skipping DB init after {max_retries} attempts: {e}"
+                        )
+                        return False
                 else:
+                    import time
                     app.logger.warning(
-                        f"Skipping DB init after {max_retries} attempts: {e}"
+                        f"Database init attempt {attempts} failed, "
+                        f"retrying in {delay}s: {e}"
                     )
-            else:
-                import time
-                app.logger.warning(
-                    f"Database init attempt {attempts} failed, "
-                    f"retrying in {delay}s: {e}"
-                )
-                time.sleep(delay)
-                delay = min(delay * 1.5, 30)
+                    time.sleep(delay)
+                    delay = min(delay * 1.5, 30)
+    return True
+
+# Only run database initialization when script is run directly, not during import
+if __name__ == "__main__":
+    init_database_if_needed()
 
 
 if __name__ == '__main__':

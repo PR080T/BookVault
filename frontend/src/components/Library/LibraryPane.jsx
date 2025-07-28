@@ -1,23 +1,23 @@
-import { useState, useEffect, useReducer, useCallback } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect, useReducer, useCallback } from 'react'  // React library import
+import { useLocation } from 'react-router-dom'  // React library import
 import BookItem from './BookItem'
-import { Tabs, Pagination } from "flowbite-react";
-import BooksService from '../../services/books.service';
+import { Tabs, Pagination } from "flowbite-react";  // React library import
+import BooksService from '../../services/books.service';  // Service layer import for API communication
 import PaneTabView from './PaneTabView';
 import reducer, { initialState, actionTypes } from '../../useLibraryReducer';
 import ReadingStats from './ReadingStats';
 import ExportImport from '../ExportImport';
 import ReadingGoals from '../ReadingGoals';
-import { RiBook2Line } from "react-icons/ri";
-import { RiBookOpenLine } from "react-icons/ri";
-import { RiBookmarkLine } from "react-icons/ri";
+import { RiBook2Line } from "react-icons/ri";  // React library import
+import { RiBookOpenLine } from "react-icons/ri";  // React library import
+import { RiBookmarkLine } from "react-icons/ri";  // React library import
 
 function LibraryPane() {
-    const location = useLocation();
-    const [activeTab, setActiveTab] = useState(0);
+    const location = useLocation();  // React Router hook for current location
+    const [activeTab, setActiveTab] = useState(0);  // React state hook for component state management
     const [state, dispatch] = useReducer(reducer, initialState);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const [page, setPage] = useState(1);  // React state hook for component state management
+    const [totalPages, setTotalPages] = useState(1);  // React state hook for component state management
     const onPageChange = (page) => setPage(page);
 
     const translateTabsToStatus = useCallback(() => {
@@ -39,40 +39,40 @@ function LibraryPane() {
             if (import.meta.env.DEV) console.log(`Fetched ${response.data.items?.length || 0} books:`, response.data);
             dispatch({type: actionTypes.BOOKS, books: response.data})
             if (response.data.meta && response.data.meta.total_pages > 0) {
-                setTotalPages(response.data.meta.total_pages)
+                setTotalPages(response.data.meta.total_pages)  // State update
             }
         } catch (error) {
             console.error('Error fetching books:', error);
-            // Set empty state on error
+  // Set empty state on error
             dispatch({type: actionTypes.BOOKS, books: { items: [], meta: { total_items: 0 } }})
         }
     }, [page, dispatch])
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         getBooks(translateTabsToStatus());
-        setPage(1);
+        setPage(1);  // State update
         
     }, [activeTab, getBooks, translateTabsToStatus])
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
       getBooks(translateTabsToStatus())
     }, [page, getBooks, translateTabsToStatus])
 
-    // Refresh books when the window regains focus (user returns to the tab/app)
-    useEffect(() => {
+  // Refresh books when the window regains focus (user returns to the tab/app)
+    useEffect(() => {  // React effect hook for side effects
         const handleFocus = () => {
-            // Add a small delay to ensure database transactions are committed
-            setTimeout(() => {
+  // Add a small delay to ensure database transactions are committed
+            setTimeout(() => {  // State update
                 getBooks(translateTabsToStatus());
             }, 100);
         };
 
         window.addEventListener('focus', handleFocus);
         
-        // Also listen for visibility change (when user switches tabs)
+  // Also listen for visibility change (when user switches tabs)
         const handleVisibilityChange = () => {
             if (!document.hidden) {
-                setTimeout(() => {
+                setTimeout(() => {  // State update
                     getBooks(translateTabsToStatus());
                 }, 100);
             }
@@ -80,23 +80,23 @@ function LibraryPane() {
         
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
-        return () => {
+        return () => {  // JSX return statement
             window.removeEventListener('focus', handleFocus);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [getBooks, translateTabsToStatus])
 
-    // Refresh books when navigating to the library page
-    useEffect(() => {
+  // Refresh books when navigating to the library page
+    useEffect(() => {  // React effect hook for side effects
         if (location.pathname === '/library') {
-            // Add a small delay to ensure database transactions are committed
-            setTimeout(() => {
+  // Add a small delay to ensure database transactions are committed
+            setTimeout(() => {  // State update
                 getBooks(translateTabsToStatus());
             }, 100);
         }
     }, [location.pathname, getBooks, translateTabsToStatus])
 
-    return (
+    return (  // JSX return statement
         <>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <article className="format lg:format-lg dark:format-invert">
@@ -108,7 +108,7 @@ function LibraryPane() {
                     <span>Total books: {state.books?.meta?.total_items || 0}</span>
                 </div>
                 <button 
-                    onClick={() => getBooks(translateTabsToStatus())}
+                    onClick={() => getBooks(translateTabsToStatus())}  // Event handler assignment
                     className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
                     Refresh
@@ -122,7 +122,7 @@ function LibraryPane() {
         <Tabs.Item active title="Currently reading" icon={RiBookOpenLine}>
         <PaneTabView>
             {(state.books?.items || []).map((item) => {
-                return (
+                return (  // JSX return statement
                     <div key={item.id}>
                         <BookItem internalID={item.id} allowNoteEditing={true} showNotes={true} showRating={true} showProgress={true} title={item.title} isbn={item.isbn} totalPages={item.total_pages} currentPage={item.current_page} author={item.author} rating={item.rating} notes={item.num_notes} onReadingStatusChanged={() => getBooks(translateTabsToStatus())}/>
                     </div>
@@ -133,7 +133,7 @@ function LibraryPane() {
         <Tabs.Item title="To be read" icon={RiBookmarkLine}>
             <PaneTabView>
             {(state.books?.items || []).map((item) => {
-                return (
+                return (  // JSX return statement
                     <div key={item.id}>
                         <BookItem internalID={item.id} showNotes allowNoteEditing={true} showRating={true} showProgress={false} showOptions title={item.title} isbn={item.isbn} totalPages={item.total_pages} currentPage={item.current_page} author={item.author} rating={item.rating} notes={item.num_notes} onReadingStatusChanged={() => getBooks(translateTabsToStatus())}/>
                     </div>
@@ -144,7 +144,7 @@ function LibraryPane() {
         <Tabs.Item title="Read" icon={RiBook2Line}>
             <PaneTabView>
             {(state.books?.items || []).map((item) => {
-                return (
+                return (  // JSX return statement
                     <div key={item.id}>
                         <BookItem internalID={item.id} showNotes allowNoteEditing={true} showProgress={false} showOptions showRating title={item.title} isbn={item.isbn} author={item.author} rating={item.rating} notes={item.num_notes} onReadingStatusChanged={() => getBooks(translateTabsToStatus())}  />
                     </div>
@@ -181,4 +181,4 @@ function LibraryPane() {
     )
 }
 
-export default LibraryPane
+export default LibraryPane  // Export for use in other modules

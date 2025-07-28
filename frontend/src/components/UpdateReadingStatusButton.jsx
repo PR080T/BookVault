@@ -1,19 +1,19 @@
-import { useState }  from 'react'
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'flowbite-react'
-import BooksService from '../services/books.service';
+import { useState }  from 'react'  // React library import
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'flowbite-react'  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
 import useToast from '../toast/useToast';
-import Confetti from 'react-confetti'
-import { RiMastodonFill } from "react-icons/ri";
-import { Link } from 'react-router-dom';
+import Confetti from 'react-confetti'  // React library import
+import { RiMastodonFill } from "react-icons/ri";  // React library import
+import { Link } from 'react-router-dom';  // React library import
 import BookRating from './Library/BookRating';
 import UpdateReadingStatusView from './UpdateReadingStatusView';
 
 function UpdateReadingStatusButton(props) {
-    const [openModal, setOpenModal] = useState(false);
-    const [openFinishModal, setOpenFinishModal] = useState(false);
+    const [openModal, setOpenModal] = useState(false);  // React state hook for component state management
+    const [openFinishModal, setOpenFinishModal] = useState(false);  // React state hook for component state management
 
-    const [updatedProgress, setUpdatedProgress] = useState(props.currentPage || 0);
-    const [updateButtonDisabled, setUpdateButtonDisabled] = useState(false);
+    const [updatedProgress, setUpdatedProgress] = useState(props.currentPage || 0);  // React state hook for component state management
+    const [updateButtonDisabled, setUpdateButtonDisabled] = useState(false);  // React state hook for component state management
 
     const toast = useToast(4000);
 
@@ -21,7 +21,7 @@ function UpdateReadingStatusButton(props) {
         BooksService.edit(props.id, {current_page: updatedProgress}).then(
             response => {
                 toast("success", response.data.message);
-                setOpenModal(false);
+                setOpenModal(false);  // State update
                 props.onSucess()
             }
         ).catch(error => {
@@ -34,8 +34,8 @@ function UpdateReadingStatusButton(props) {
         BooksService.edit(props.id, {current_page: props.totalPages, status: "Read"}).then(
             response => {
                 toast("success", response.data.message);
-                setOpenModal(false);
-                setOpenFinishModal(true);
+                setOpenModal(false);  // State update
+                setOpenFinishModal(true);  // State update
             }
         ).catch(error => {
             console.error('Error setting book as finished:', error);
@@ -43,11 +43,11 @@ function UpdateReadingStatusButton(props) {
         })
     }    
 
-    return (
+    return (  // JSX return statement
         <>
             {props.buttonStyle == "alternative" ? (
                 <Button 
-                    onClick={() => setOpenModal(true)}
+                    onClick={() => setOpenModal(true)}  // Event handler assignment
                     aria-label={`Update reading progress for ${props.title}`}
                 >
                     Update progress
@@ -57,7 +57,7 @@ function UpdateReadingStatusButton(props) {
                     color="light" 
                     pill 
                     size="sm" 
-                    onClick={() => setOpenModal(true)}
+                    onClick={() => setOpenModal(true)}  // Event handler assignment
                     aria-label={`Update reading progress for ${props.title}`}
                 >
                     Update progress
@@ -75,9 +75,9 @@ function UpdateReadingStatusButton(props) {
                     />
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={() => updateProgress()} disabled={updateButtonDisabled}>Update</Button>
-                    <Button color="alternative" onClick={() => setOpenModal(false)}>Cancel</Button>
-                    <Button color="alternative" onClick={() => setFinished()}>Set as finished</Button>
+                    <Button onClick={() => updateProgress()} disabled={updateButtonDisabled}>Update</Button>  // Event handler assignment
+                    <Button color="alternative" onClick={() => setOpenModal(false)}>Cancel</Button>  // Event handler assignment
+                    <Button color="alternative" onClick={() => setFinished()}>Set as finished</Button>  // Event handler assignment
                 </ModalFooter>
             </Modal>
 
@@ -99,7 +99,7 @@ function UpdateReadingStatusButton(props) {
                     </div>
                 </ModalBody>
                 <ModalFooter className="flex justify-center gap-4">
-                    <Button as={Link} to={"https://mastodonshare.com/?text=I just finished reading " + props.title  + " 📖&url=https://booklogr.app/books/" + props.id} target='_blank'>
+                    <Button as={Link} to={"https:  // mastodonshare.com/?text=I just finished reading " + props.title  + " 📖&url=https:
                         <RiMastodonFill className="mr-2 h-5 w-5" />
                         Share on Mastodon
                     </Button>
@@ -109,4 +109,4 @@ function UpdateReadingStatusButton(props) {
     )
 }
 
-export default UpdateReadingStatusButton
+export default UpdateReadingStatusButton  // Export for use in other modules

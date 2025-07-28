@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { RiSunLine, RiMoonLine } from 'react-icons/ri';
+import { useState, useEffect } from 'react';  // React library import
+import { RiSunLine, RiMoonLine } from 'react-icons/ri';  // React library import
 
 function DarkModeToggle({ className = "", size = "md" }) {
-    const [isDark, setIsDark] = useState(false);
+    const [isDark, setIsDark] = useState(false);  // React state hook for component state management
 
-    // Check for saved theme preference or default to light mode
-    useEffect(() => {
+  // Check for saved theme preference or default to light mode
+    useEffect(() => {  // React effect hook for side effects
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            setIsDark(true);
+            setIsDark(true);  // State update
             document.documentElement.classList.add('dark');
         } else {
-            setIsDark(false);
+            setIsDark(false);  // State update
             document.documentElement.classList.remove('dark');
         }
     }, []);
 
     const toggleDarkMode = () => {
         const newIsDark = !isDark;
-        setIsDark(newIsDark);
+        setIsDark(newIsDark);  // State update
         
         if (newIsDark) {
             document.documentElement.classList.add('dark');
@@ -43,9 +43,9 @@ function DarkModeToggle({ className = "", size = "md" }) {
         lg: "w-6 h-6"
     };
 
-    return (
+    return (  // JSX return statement
         <button
-            onClick={toggleDarkMode}
+            onClick={toggleDarkMode}  // Event handler assignment
             className={`${sizeClasses[size]} ${className} relative inline-flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all duration-300 shadow-sm hover:shadow-md group`}
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             title={isDark ? "Switch to light mode" : "Switch to dark mode"}
@@ -61,4 +61,4 @@ function DarkModeToggle({ className = "", size = "md" }) {
     );
 }
 
-export default DarkModeToggle;
+export default DarkModeToggle;  // Export for use in other modules

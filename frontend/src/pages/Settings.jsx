@@ -1,12 +1,12 @@
-import { Tabs, TabItem} from "flowbite-react";
-import { RiAccountCircleLine, RiDatabase2Line, RiMastodonLine } from "react-icons/ri";
-import DataTab from '../components/Data/DataTab';
-import AccountTab from '../components/AccountTab';
+import { Tabs, TabItem} from "flowbite-react";  // React library import
+import { RiAccountCircleLine, RiDatabase2Line, RiMastodonLine } from "react-icons/ri";  // React library import
+import DataTab from '../components/Data/DataTab';  // Reusable UI component import
+import AccountTab from '../components/AccountTab';  // Reusable UI component import
 import AnimatedLayout from '../AnimatedLayout';
-import MastodonTab from '../components/MastodonTab';
+import MastodonTab from '../components/MastodonTab';  // Reusable UI component import
 
 function Settings() {
-    return (
+    return (  // JSX return statement
         <AnimatedLayout>
         <div className="container mx-auto ">
             <article className="format lg:format-lg pb-2 dark:format-invert">
@@ -28,4 +28,4 @@ function Settings() {
     )
 }
 
-export default Settings
+export default Settings  // Export for use in other modules

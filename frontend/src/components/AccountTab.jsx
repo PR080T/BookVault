@@ -1,8 +1,8 @@
-import { Avatar, Button, Label, TextInput, HR } from "flowbite-react";
-import { RiMailLine, RiLockPasswordLine } from "react-icons/ri";
+import { Avatar, Button, Label, TextInput, HR } from "flowbite-react";  // React library import
+import { RiMailLine, RiLockPasswordLine } from "react-icons/ri";  // React library import
 
 function AccountTab() {
-    return (
+    return (  // JSX return statement
         <div className="flex flex-col">
             <div className="flex flex-row justify-end">
                 <Button disabled>Save</Button>
@@ -85,4 +85,4 @@ function AccountTab() {
     )
 }
 
-export default AccountTab
+export default AccountTab  // Export for use in other modules

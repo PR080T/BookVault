@@ -1,29 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
-import { checkConnection } from '../services/api';
-import { Alert, Button } from 'flowbite-react';
-import { HiInformationCircle, HiExclamation } from 'react-icons/hi';
-import { RiWifiOffLine, RiRefreshLine } from 'react-icons/ri';
+import { useState, useEffect, useCallback } from 'react';  // React library import
+import { checkConnection } from '../services/api';  // Service layer import for API communication
+import { Alert, Button } from 'flowbite-react';  // React library import
+import { HiInformationCircle, HiExclamation } from 'react-icons/hi';  // React library import
+import { RiWifiOffLine, RiRefreshLine } from 'react-icons/ri';  // React library import
 
 const ConnectionStatus = () => {
-    const [connectionStatus, setConnectionStatus] = useState({
+    const [connectionStatus, setConnectionStatus] = useState({  // React state hook for component state management
         isConnected: true,
         isChecking: false,
         message: ''
     });
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);  // React state hook for component state management
 
     const checkServerConnection = useCallback(async () => {
-        setConnectionStatus(prev => ({ ...prev, isChecking: true }));
+        setConnectionStatus(prev => ({ ...prev, isChecking: true }));  // State update
         
         try {
             const status = await checkConnection();
-            setConnectionStatus({
+            setConnectionStatus({  // State update
                 isConnected: status.isConnected,
                 isChecking: false,
                 message: status.message
             });
         } catch {
-            setConnectionStatus({
+            setConnectionStatus({  // State update
                 isConnected: false,
                 isChecking: false,
                 message: 'Connection check failed'
@@ -31,15 +31,15 @@ const ConnectionStatus = () => {
         }
     }, []);
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         const handleOnline = () => {
-            setIsOnline(true);
+            setIsOnline(true);  // State update
             checkServerConnection();
         };
 
         const handleOffline = () => {
-            setIsOnline(false);
-            setConnectionStatus({
+            setIsOnline(false);  // State update
+            setConnectionStatus({  // State update
                 isConnected: false,
                 isChecking: false,
                 message: 'No internet connection'
@@ -49,29 +49,29 @@ const ConnectionStatus = () => {
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // Check connection on mount
+  // Check connection on mount
         checkServerConnection();
 
-        // Set up periodic connection checks (only when online)
+  // Set up periodic connection checks (only when online)
         const interval = setInterval(() => {
             if (navigator.onLine && !connectionStatus.isConnected) {
                 checkServerConnection();
             }
-        }, 60000); // Check every 60 seconds, and only when disconnected
+        }, 60000);  // Check every 60 seconds, and only when disconnected
 
-        return () => {
+        return () => {  // JSX return statement
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
             clearInterval(interval);
         };
     }, [connectionStatus.isConnected, checkServerConnection]);
 
-    // Show connection status when checking or when there's an error
+  // Show connection status when checking or when there's an error
     if (!connectionStatus.isChecking && connectionStatus.isConnected && isOnline) {
         return null;
     }
 
-    return (
+    return (  // JSX return statement
         <div className="fixed top-4 right-4 z-50 max-w-sm">
             {connectionStatus.isChecking ? (
                 <Alert color="info" icon={HiInformationCircle}>
@@ -98,7 +98,7 @@ const ConnectionStatus = () => {
                             <Button
                                 size="xs"
                                 color="purple"
-                                onClick={checkServerConnection}
+                                onClick={checkServerConnection}  // Event handler assignment
                                 disabled={connectionStatus.isChecking}
                             >
                                 <RiRefreshLine className="mr-1 h-3 w-3" />
@@ -112,4 +112,4 @@ const ConnectionStatus = () => {
     );
 };
 
-export default ConnectionStatus;
+export default ConnectionStatus;  // Export for use in other modules

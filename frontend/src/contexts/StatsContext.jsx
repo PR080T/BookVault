@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import BooksService from '../services/books.service';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
 
 const StatsContext = createContext();
 
 const useStats = () => {
-    const context = useContext(StatsContext);
+    const context = useContext(StatsContext);  // React context hook for global state
     if (!context) {
         throw new Error('useStats must be used within a StatsProvider');
     }
@@ -12,26 +12,26 @@ const useStats = () => {
 };
 
 const StatsProvider = ({ children }) => {
-    const [stats, setStats] = useState({
+    const [stats, setStats] = useState({  // React state hook for component state management
         read: 0,
         currentlyReading: 0,
         toRead: 0,
         total: 0
     });
-    const [loading, setLoading] = useState(true);
-    const [lastFetch, setLastFetch] = useState(null);
+    const [loading, setLoading] = useState(true);  // React state hook for component state management
+    const [lastFetch, setLastFetch] = useState(null);  // React state hook for component state management
 
     const fetchStats = useCallback(async (force = false) => {
-        // Only fetch if we haven't fetched in the last 30 seconds or if forced
+  // Only fetch if we haven't fetched in the last 30 seconds or if forced
         const now = Date.now();
         if (!force && lastFetch && (now - lastFetch) < 30000) {
             return;
         }
 
         try {
-            // Only show loading for initial fetch or forced refresh
+  // Only show loading for initial fetch or forced refresh
             if (!lastFetch || force) {
-                setLoading(true);
+                setLoading(true);  // State update
             }
             
             const response = await BooksService.getStats();
@@ -44,12 +44,12 @@ const StatsProvider = ({ children }) => {
                 total: data.total_books || 0
             };
             
-            setStats(newStats);
-            setLastFetch(now);
+            setStats(newStats);  // State update
+            setLastFetch(now);  // State update
         } catch (error) {
             console.error('Error fetching reading stats:', error);
         } finally {
-            setLoading(false);
+            setLoading(false);  // State update
         }
     }, [lastFetch]);
 
@@ -57,7 +57,7 @@ const StatsProvider = ({ children }) => {
         fetchStats(true);
     };
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         fetchStats();
     }, [fetchStats]);
 
@@ -68,12 +68,12 @@ const StatsProvider = ({ children }) => {
         fetchStats
     };
 
-    return (
+    return (  // JSX return statement
         <StatsContext.Provider value={value}>
             {children}
         </StatsContext.Provider>
     );
 };
 
-export { useStats, StatsProvider };
-export default StatsContext;
+export { useStats, StatsProvider };  // Export for use in other modules
+export default StatsContext;  // Export for use in other modules

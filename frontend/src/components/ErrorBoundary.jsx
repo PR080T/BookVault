@@ -1,6 +1,6 @@
-import React from 'react';
-import { RiErrorWarningLine, RiRefreshLine } from "react-icons/ri";
-import { Button } from "flowbite-react";
+import React from 'react';  // React library import
+import { RiErrorWarningLine, RiRefreshLine } from "react-icons/ri";  // React library import
+import { Button } from "flowbite-react";  // React library import
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -9,17 +9,17 @@ class ErrorBoundary extends React.Component {
     }
 
     static getDerivedStateFromError() {
-        // Update state so the next render will show the fallback UI
+  // Update state so the next render will show the fallback UI
         return { hasError: true };
     }
 
     componentDidCatch(error, errorInfo) {
-        // Log the error to console in development
+  // Log the error to console in development
         if (process.env.NODE_ENV === 'development') {
             console.error('Error caught by boundary:', error, errorInfo);
         }
         
-        this.setState({
+        this.setState({  // State update
             error: error,
             errorInfo: errorInfo
         });
@@ -27,7 +27,7 @@ class ErrorBoundary extends React.Component {
 
     render() {
         if (this.state.hasError) {
-            return (
+            return (  // JSX return statement
                 <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                     <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
                         <div className="mb-6">
@@ -41,7 +41,7 @@ class ErrorBoundary extends React.Component {
                         </p>
                         <div className="space-y-3">
                             <Button 
-                                onClick={() => window.location.reload()} 
+                                onClick={() => window.location.reload()}  // Event handler assignment
                                 className="w-full"
                                 color="blue"
                             >
@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component {
                                 Refresh Page
                             </Button>
                             <Button 
-                                onClick={() => window.location.href = '/library'} 
+                                onClick={() => window.location.href = '/library'}  // Event handler assignment
                                 color="gray"
                                 className="w-full"
                             >
@@ -76,4 +76,4 @@ class ErrorBoundary extends React.Component {
     }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary;  // Export for use in other modules

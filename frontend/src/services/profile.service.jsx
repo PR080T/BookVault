@@ -17,7 +17,7 @@ const edit = (data) => {
     return apiWithRetry.patch("/v1/profiles", data);
 }
 
-export default {
+export default {  // Export for use in other modules
     create,
     get,
     get_by_display_name,

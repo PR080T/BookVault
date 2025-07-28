@@ -1,35 +1,35 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import ProfileService from '../services/profile.service';
-import { Button, ButtonGroup, TextInput, Label, Badge, Modal, ModalHeader, ModalBody, Select, Popover, Avatar, Tooltip, Alert, Spinner } from "flowbite-react";
+import { useEffect, useState, useMemo, useCallback } from 'react'  // React library import
+import ProfileService from '../services/profile.service';  // Service layer import for API communication
+import { Button, ButtonGroup, TextInput, Label, Badge, Modal, ModalHeader, ModalBody, Select, Popover, Avatar, Tooltip, Alert, Spinner } from "flowbite-react";  // React library import
 import useToast from '../toast/useToast';
-import BookItem from '../components/Library/BookItem';
-import PaneTabView from '../components/Library/PaneTabView';
-import { Link, useParams } from 'react-router-dom';
-import BookStatsCard from '../components/BookStatsCard';
-import { RiSettings4Line } from "react-icons/ri";
-import { RiQuestionLine } from "react-icons/ri";
-import authService from '../services/auth.service';
-import { RiBook2Line } from "react-icons/ri";
-import { RiBookOpenLine } from "react-icons/ri";
-import { RiBookmarkLine } from "react-icons/ri";
-import { RiEyeLine } from "react-icons/ri";
-import { RiRefreshLine } from "react-icons/ri";
+import BookItem from '../components/Library/BookItem';  // Reusable UI component import
+import PaneTabView from '../components/Library/PaneTabView';  // Reusable UI component import
+import { Link, useParams } from 'react-router-dom';  // React library import
+import BookStatsCard from '../components/BookStatsCard';  // Reusable UI component import
+import { RiSettings4Line } from "react-icons/ri";  // React library import
+import { RiQuestionLine } from "react-icons/ri";  // React library import
+import authService from '../services/auth.service';  // Service layer import for API communication
+import { RiBook2Line } from "react-icons/ri";  // React library import
+import { RiBookOpenLine } from "react-icons/ri";  // React library import
+import { RiBookmarkLine } from "react-icons/ri";  // React library import
+import { RiEyeLine } from "react-icons/ri";  // React library import
+import { RiRefreshLine } from "react-icons/ri";  // React library import
 import AnimatedLayout from '../AnimatedLayout';
-import WelcomeModal from '../components/WelcomeModal';
-import { checkConnection } from '../services/api';
+import WelcomeModal from '../components/WelcomeModal';  // Reusable UI component import
+import { checkConnection } from '../services/api';  // Service layer import for API communication
 
 function Profile() {
-    const [data, setData] = useState();
-    const [readingStatusFilter, setReadingStatusFilter] = useState("All");
+    const [data, setData] = useState();  // React state hook for component state management
+    const [readingStatusFilter, setReadingStatusFilter] = useState("All");  // React state hook for component state management
 
-    const [openSettingsModal, setOpenSettingsModal] = useState(false);
-    const [displayName, setDisplayName] = useState();
-    const [profileVisiblity, setProfileVisiblity] = useState();
-    const [profileNotFound, setProfileNotFound] = useState(false);
-    const [networkError, setNetworkError] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [openSettingsModal, setOpenSettingsModal] = useState(false);  // React state hook for component state management
+    const [displayName, setDisplayName] = useState();  // React state hook for component state management
+    const [profileVisiblity, setProfileVisiblity] = useState();  // React state hook for component state management
+    const [profileNotFound, setProfileNotFound] = useState(false);  // React state hook for component state management
+    const [networkError, setNetworkError] = useState(false);  // React state hook for component state management
+    const [loading, setLoading] = useState(false);  // React state hook for component state management
 
-    const [showWelcomeModal, setShowWelcomeScreen] = useState(false);
+    const [showWelcomeModal, setShowWelcomeScreen] = useState(false);  // React state hook for component state management
 
     const toast = useToast(4000);
     let { name } = useParams();
@@ -58,29 +58,29 @@ function Profile() {
     
 
     const getProfileData = useCallback(() => {
-        setLoading(true);
-        setNetworkError(false);
-        setProfileNotFound(false);
+        setLoading(true);  // State update
+        setNetworkError(false);  // State update
+        setProfileNotFound(false);  // State update
         
         ProfileService.get().then(
             response => {
-                setData(response.data)
-                setDisplayName(response.data.display_name);
-                setProfileVisiblity(response.data.visibility)
-                setNetworkError(false);
-                setLoading(false);
+                setData(response.data)  // State update
+                setDisplayName(response.data.display_name);  // State update
+                setProfileVisiblity(response.data.visibility)  // State update
+                setNetworkError(false);  // State update
+                setLoading(false);  // State update
             },
             error => {
-                setLoading(false);
+                setLoading(false);  // State update
                 let resMessage;
                 
-                // Handle network errors (no response received)
+  // Handle network errors (no response received)
                 if (!error.response) {
                     resMessage = error.isNetworkError ? error.message : "Network error - please check your connection";
                     console.error("Network error:", error);
-                    setNetworkError(true);
+                    setNetworkError(true);  // State update
                 } else {
-                    // Handle HTTP errors
+  // Handle HTTP errors
                     resMessage = (error.response.data && error.response.data.message) || 
                                 error.message || 
                                 error.toString();
@@ -88,13 +88,13 @@ function Profile() {
                     if (error.response.status === 404) {
                         console.log("Profile not found, showing welcome modal");
                         localStorage.setItem("show_welcome_screen", "true");
-                        setShowWelcomeScreen(true);
-                        return; // Don't show error toast for 404, show welcome modal instead
+                        setShowWelcomeScreen(true);  // State update
+                        return;  // Don't show error toast for 404, show welcome modal instead
                     }
-                    setNetworkError(false);
+                    setNetworkError(false);  // State update
                 }
                 
-                // Only show error toast if it's not a 404 (which shows welcome modal)
+  // Only show error toast if it's not a 404 (which shows welcome modal)
                 if (!error.response || error.response.status !== 404) {
                     toast("error", resMessage);
                 }
@@ -102,40 +102,40 @@ function Profile() {
         )
     }, [toast])
 
-    useEffect(() => {
-        console.log("Profile useEffect triggered, name:", name);
+    useEffect(() => {  // React effect hook for side effects
+        console.log("Profile useEffect triggered, name:", name);  // React effect hook for side effects
         if (name) {
-            setLoading(true);
-            setNetworkError(false);
+            setLoading(true);  // State update
+            setNetworkError(false);  // State update
             
             ProfileService.get_by_display_name(name).then(
                 response => {
-                    setData(response.data)
-                    setDisplayName(response.data.display_name);
-                    setProfileVisiblity(response.data.visibility)
-                    setNetworkError(false);
-                    setLoading(false);
+                    setData(response.data)  // State update
+                    setDisplayName(response.data.display_name);  // State update
+                    setProfileVisiblity(response.data.visibility)  // State update
+                    setNetworkError(false);  // State update
+                    setLoading(false);  // State update
                 },
                 error => {
-                    setLoading(false);
+                    setLoading(false);  // State update
                     let resMessage;
                     
-                    // Handle network errors (no response received)
+  // Handle network errors (no response received)
                     if (!error.response) {
                         resMessage = error.isNetworkError ? error.message : "Network error - please check your connection";
                         console.error("Network error:", error);
-                        setNetworkError(true);
-                        setProfileNotFound(false); // Don't show "profile not found" for network errors
+                        setNetworkError(true);  // State update
+                        setProfileNotFound(false);  // Don't show "profile not found" for network errors
                     } else {
-                        // Handle HTTP errors
+  // Handle HTTP errors
                         resMessage = (error.response.data && error.response.data.message) || 
                                     error.message || 
                                     error.toString();
                         
                         if (error.response.status === 404) {
-                            setProfileNotFound(true);
+                            setProfileNotFound(true);  // State update
                         }
-                        setNetworkError(false);
+                        setNetworkError(false);  // State update
                     }
                     
                     toast("error", resMessage);
@@ -151,37 +151,37 @@ function Profile() {
         const connectionStatus = await checkConnection();
         if (connectionStatus.isConnected) {
             if (name) {
-                // Retry loading profile by display name
+  // Retry loading profile by display name
                 const currentEffect = () => {
-                    setLoading(true);
-                    setNetworkError(false);
+                    setLoading(true);  // State update
+                    setNetworkError(false);  // State update
                     
                     ProfileService.get_by_display_name(name).then(
                         response => {
-                            setData(response.data)
-                            setDisplayName(response.data.display_name);
-                            setProfileVisiblity(response.data.visibility)
-                            setNetworkError(false);
-                            setLoading(false);
+                            setData(response.data)  // State update
+                            setDisplayName(response.data.display_name);  // State update
+                            setProfileVisiblity(response.data.visibility)  // State update
+                            setNetworkError(false);  // State update
+                            setLoading(false);  // State update
                         },
                         error => {
-                            setLoading(false);
+                            setLoading(false);  // State update
                             let resMessage;
                             
                             if (!error.response) {
                                 resMessage = error.isNetworkError ? error.message : "Network error - please check your connection";
                                 console.error("Network error:", error);
-                                setNetworkError(true);
-                                setProfileNotFound(false);
+                                setNetworkError(true);  // State update
+                                setProfileNotFound(false);  // State update
                             } else {
                                 resMessage = (error.response.data && error.response.data.message) || 
                                             error.message || 
                                             error.toString();
                                 
                                 if (error.response.status === 404) {
-                                    setProfileNotFound(true);
+                                    setProfileNotFound(true);  // State update
                                 }
-                                setNetworkError(false);
+                                setNetworkError(false);  // State update
                             }
                             
                             toast("error", resMessage);
@@ -212,24 +212,24 @@ function Profile() {
             ProfileService.edit(newProfileData).then(
                 response => {
                     toast("success", response.data.message);
-                    setOpenSettingsModal(false);
+                    setOpenSettingsModal(false);  // State update
                     getProfileData();
                 },
                 error => {
                     let resMessage;
                     
-                    // Handle network errors (no response received)
+  // Handle network errors (no response received)
                     if (!error.response) {
                         resMessage = error.isNetworkError ? error.message : "Network error - please check your connection";
                         console.error("Network error:", error);
                     } else {
-                        // Handle HTTP errors
+  // Handle HTTP errors
                         resMessage = (error.response.data && error.response.data.message) || 
                                     error.message || 
                                     error.toString();
                     }
                     
-                    setOpenSettingsModal(false);
+                    setOpenSettingsModal(false);  // State update
                     toast("error", resMessage);
                 }
             )
@@ -244,7 +244,7 @@ function Profile() {
         return visibilityMap[value] || value;
     }
 
-    return (
+    return (  // JSX return statement
         <AnimatedLayout>
         <div className="container mx-auto">
             {loading && (
@@ -260,7 +260,7 @@ function Profile() {
                         <div>
                             <span className="font-medium">Connection Error!</span> Unable to load profile data. Please check your internet connection.
                         </div>
-                        <Button size="sm" color="failure" onClick={handleRetry}>
+                        <Button size="sm" color="failure" onClick={handleRetry}>  // Event handler assignment
                             <RiRefreshLine className="mr-2 h-4 w-4" />
                             Retry
                         </Button>
@@ -282,7 +282,7 @@ function Profile() {
                         </div>
                         {currentUser &&
                             <Tooltip content="Profile settings">
-                                <Button className="hover:cursor-pointer" color="light" pill onClick={() => setOpenSettingsModal(true)}><RiSettings4Line className="h-6 w-6"/></Button>
+                                <Button className="hover:cursor-pointer" color="light" pill onClick={() => setOpenSettingsModal(true)}><RiSettings4Line className="h-6 w-6"/></Button>  // Event handler assignment
                             </Tooltip>
                         }                        
                     </div>
@@ -296,14 +296,14 @@ function Profile() {
                         <span className="absolute font-medium text-gray-900 -translate-x-1/3 bg-white dark:bg-[#121212] dark:text-white ">All books</span>
                     </div>
                     <ButtonGroup className="pb-4">
-                        <Button color="alternative" onClick={() => setReadingStatusFilter("All")}>All ({data.books.length})</Button>
-                        <Button color="alternative" onClick={() => setReadingStatusFilter("Read")}>Read ({data.num_books_read || 0})</Button>
-                        <Button color="alternative" onClick={() => setReadingStatusFilter("Currently reading")}>Currently reading ({data.num_books_reading || 0})</Button>
-                        <Button color="alternative" onClick={() => setReadingStatusFilter("To be read")}>To be read ({data.num_books_tbr || 0})</Button>
+                        <Button color="alternative" onClick={() => setReadingStatusFilter("All")}>All ({data.books.length})</Button>  // Event handler assignment
+                        <Button color="alternative" onClick={() => setReadingStatusFilter("Read")}>Read ({data.num_books_read || 0})</Button>  // Event handler assignment
+                        <Button color="alternative" onClick={() => setReadingStatusFilter("Currently reading")}>Currently reading ({data.num_books_reading || 0})</Button>  // Event handler assignment
+                        <Button color="alternative" onClick={() => setReadingStatusFilter("To be read")}>To be read ({data.num_books_tbr || 0})</Button>  // Event handler assignment
                     </ButtonGroup>
                     <PaneTabView>
                     {filteredBooks.map((item, i) => {
-                        return (
+                        return (  // JSX return statement
                             <div key={i}>
                                 <BookItem internalID={i} showNotes showRating disableGiveRating={true} showReadingStatusBadge={true} showOptions={false} showProgress={false} title={item.title} isbn={item.isbn} totalPages={item.total_pages} currentPage={item.current_page} author={item.author} readingStatus={item.reading_status} rating={item.rating} notes={item.num_notes} allowNoteEditing={false} overrideNotes={item.notes}/>
                             </div>
@@ -313,7 +313,7 @@ function Profile() {
                     <Modal dismissible show={openSettingsModal} onClose={() => setOpenSettingsModal(false)}>
                         <ModalHeader className="border-gray-200">Update profile</ModalHeader>
                         <ModalBody>
-                            <form className="flex flex-col gap-4" onSubmit={handleUpdateProfile}>
+                            <form className="flex flex-col gap-4" onSubmit={handleUpdateProfile}>  // Event handler assignment
                                 <div>
                                     <div className="mb-2 block">
                                         <div className="flex flex-row gap-2 items-center">
@@ -323,13 +323,13 @@ function Profile() {
                                         </Popover>
                                         </div>
                                     </div>
-                                    <TextInput id="displayname" type="text" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                                    <TextInput id="displayname" type="text" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />  // Event handler assignment
                                 </div>
                                 <div>
                                     <div className="mb-2 block">
                                         <Label htmlFor="visiblity">Visibility</Label>
                                     </div>
-                                    <Select id="visiblity" required value={profileVisiblity} onChange={(e) => setProfileVisiblity(e.target.value)}>
+                                    <Select id="visiblity" required value={profileVisiblity} onChange={(e) => setProfileVisiblity(e.target.value)}>  // Event handler assignment
                                         <option value="hidden">Private</option>
                                         <option value="public">Public</option>
                                     </Select>
@@ -354,11 +354,11 @@ function Profile() {
             }
         </div>
         <WelcomeModal show={showWelcomeModal} onProfileCreate={() => {
-            setShowWelcomeScreen(false);
+            setShowWelcomeScreen(false);  // State update
             getProfileData();
         }}/>
         </AnimatedLayout>
     )
 }
 
-export default Profile
+export default Profile  // Export for use in other modules

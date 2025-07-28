@@ -13,8 +13,8 @@ Environment Variables Required:
 - DATABASE_URL: PostgreSQL connection string
 """
 
-import os
-from datetime import timedelta
+import os  # Operating system interface
+from datetime import timedelta  # Date and time handling
 
 
 class Config:
@@ -28,34 +28,34 @@ class Config:
     - Swagger API documentation settings
     """
 
-    # Security settings
+  # Security settings
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get("AUTH_SECRET_KEY",
                                 "this-really-needs-to-be-changed")
 
-    # Database configuration for PostgreSQL
+  # Database configuration for PostgreSQL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Default DB URI (will be overridden in __init__)
+  # Default DB URI (will be overridden in __init__)
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL",
         "postgresql://postgres:password@localhost:5432/bookvault"
     )
 
-    # JWT token expiration (5 days for better user experience)
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=5)
-    JWT_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY",
+  # JWT token expiration (5 days for better user experience)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=5)  # JWT token manager
+    JWT_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY",  # JWT token manager
                                     "this-really-needs-to-be-changed")
 
-    # File upload settings
+  # File upload settings
     ALLOWED_EXTENSIONS = {"csv"}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
-    # Production optimizations
+  # Production optimizations
     JSON_SORT_KEYS = False
     JSONIFY_PRETTYPRINT_REGULAR = False
 
-    # Swagger/OpenAPI config
+  # Swagger/OpenAPI config
     SWAGGER = {
         "openapi": "3.0.0",
         "info": {
@@ -79,20 +79,20 @@ class Config:
         "specs_route": "/docs"
     }
 
-    def __init__(self):
-        # Normalize Heroku-style DATABASE_URL
-        db_url = os.environ.get(
+    def __init__(self):  # Special method: __init__
+  # Normalize Heroku-style DATABASE_URL
+        db_url = os.environ.get(  # Database connection
             "DATABASE_URL",
             "postgresql://postgres:password@localhost:5432/bookvault"
         )
-        if db_url.startswith("postgres://"):
-            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        if db_url.startswith("postgres://"):  # Conditional statement
+            db_url = db_url.replace("postgres://", "postgresql://", 1)  # Database connection
         self.SQLALCHEMY_DATABASE_URI = db_url
 
         is_production = (os.environ.get("RENDER") == "true" or
                          os.environ.get("FLASK_ENV") == "production")
 
-        # Engine options
+  # Engine options
         self.SQLALCHEMY_ENGINE_OPTIONS = {
             'pool_pre_ping': True,
             'pool_recycle': 300 if is_production else 3600,
@@ -110,13 +110,13 @@ class Config:
             'keepalives_count': 3,
         }
 
-        if db_url.startswith('postgresql'):
-            if is_production:
+        if db_url.startswith('postgresql'):  # Conditional statement
+            if is_production:  # Conditional statement
                 connect_args.update({
                     'sslmode': 'require',
                     'options': '-c statement_timeout=30000'
                 })
-            else:
+            else:  # Default case
                 connect_args['sslmode'] = 'prefer'
 
             self.SQLALCHEMY_ENGINE_OPTIONS['connect_args'] = connect_args

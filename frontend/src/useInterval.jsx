@@ -1,19 +1,19 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';  // React library import
 
-export function useInterval(callback, delay) {
+export function useInterval(callback, delay) {  // Export for use in other modules
   const callbackRef = useRef();
 
-  useEffect(() => {
+  useEffect(() => {  // React effect hook for side effects
     callbackRef.current = callback;
   }, [callback]);
 
-  useEffect(() => {
+  useEffect(() => {  // React effect hook for side effects
     function tick() {
         callbackRef.current();
     }
     if (delay !== null) {
       let id = setInterval(tick, delay);
-      return () => clearInterval(id);
+      return () => clearInterval(id);  // JSX return statement
     }
   }, [callback, delay]);
 };

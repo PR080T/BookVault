@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Modal, ModalFooter, ModalBody, ModalHeader, Rating, RatingStar, Button, RangeSlider, TextInput, Tooltip } from 'flowbite-react'
+import { useEffect, useState } from 'react'  // React library import
+import { Modal, ModalFooter, ModalBody, ModalHeader, Rating, RatingStar, Button, RangeSlider, TextInput, Tooltip } from 'flowbite-react'  // React library import
 import useToast from '../../toast/useToast';
-import BooksService from '../../services/books.service';
+import BooksService from '../../services/books.service';  // Service layer import for API communication
 
 /**
  * BookRating Component
@@ -23,11 +23,11 @@ import BooksService from '../../services/books.service';
  * @param {function} onSuccess - Callback function called after successful rating update
  */
 function BookRating(props) {
-    // State management for modal and rating input
-    const [openModal, setOpenModal] = useState(false);
-    const [rangeValue, setRangeValue] = useState(props.rating ? props.rating : 0);
-    const [ratingErrorText, setRatingErrorText] = useState();
-    const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);
+  // State management for modal and rating input
+    const [openModal, setOpenModal] = useState(false);  // React state hook for component state management
+    const [rangeValue, setRangeValue] = useState(props.rating ? props.rating : 0);  // React state hook for component state management
+    const [ratingErrorText, setRatingErrorText] = useState();  // React state hook for component state management
+    const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);  // React state hook for component state management
 
     const toast = useToast(4000);
 
@@ -39,8 +39,8 @@ function BookRating(props) {
         BooksService.edit(props.id, {rating: rangeValue}).then(
             response => {
                 toast("success", response.data.message);
-                setOpenModal(false);
-                // Call onSuccess callback if provided
+                setOpenModal(false);  // State update
+  // Call onSuccess callback if provided
                 if (props.onSuccess) {
                     props.onSuccess();
                 }
@@ -52,7 +52,7 @@ function BookRating(props) {
                         error.response.data.message) ||
                     error.message ||
                     error.toString();
-                setOpenModal(false);
+                setOpenModal(false);  // State update
                 toast("error", resMessage);
             }
         )
@@ -60,26 +60,26 @@ function BookRating(props) {
 
     const handleOpenModal = () => {
         if(!props.disableGiveRating) {
-            setOpenModal(true)
+            setOpenModal(true)  // State update
         }
     }
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         if (rangeValue > 5) {
-            setRatingErrorText("Rating cannot be more than 5");
-            setSaveButtonDisabled(true);
+            setRatingErrorText("Rating cannot be more than 5");  // State update
+            setSaveButtonDisabled(true);  // State update
         } else if (rangeValue < 0) {
-            setRatingErrorText("Rating cannot be less than 0.");
-            setSaveButtonDisabled(true);
+            setRatingErrorText("Rating cannot be less than 0.");  // State update
+            setSaveButtonDisabled(true);  // State update
         } else {
-            setRatingErrorText();
-            setSaveButtonDisabled(false);
+            setRatingErrorText();  // State update
+            setSaveButtonDisabled(false);  // State update
         }
       }, [rangeValue])
 
     const rating = () => {
-        return (
-            <Rating size={props.size} onClick={() => handleOpenModal()} className={`${!props.disableGiveRating ? "hover:bg-gray-100 hover:cursor-pointer":""} w-fit`}>
+        return (  // JSX return statement
+            <Rating size={props.size} onClick={() => handleOpenModal()} className={`${!props.disableGiveRating ? "hover:bg-gray-100 hover:cursor-pointer":""} w-fit`}>  // Event handler assignment
                 <RatingStar filled={Math.floor(props.rating) >= 1 ? true : false} />
                 <RatingStar filled={Math.floor(props.rating) >= 2 ? true : false} />
                 <RatingStar filled={Math.floor(props.rating) >= 3 ? true : false} />
@@ -90,7 +90,7 @@ function BookRating(props) {
         )
     }
 
-    return (
+    return (  // JSX return statement
         <>
         {props.disableGiveRating ? (
             rating()
@@ -106,10 +106,10 @@ function BookRating(props) {
                 <p>How many stars would you like to give <strong>{props.title}</strong>?</p>
                 <div className="flex flex-row items-center gap-4">
                     <div className="basis-10/12">
-                        <RangeSlider min={0} max={5} step={0.5} value={rangeValue} onChange={(e) => setRangeValue(e.target.value)}/>
+                        <RangeSlider min={0} max={5} step={0.5} value={rangeValue} onChange={(e) => setRangeValue(e.target.value)}/>  // Event handler assignment
                     </div>
                     <div className="basis-2/12">
-                        <TextInput type="number" min={0} max={5} step={0.5} value={rangeValue} onChange={(e) => setRangeValue(e.target.value)} color={ratingErrorText ? 'failure' : 'gray'} />
+                        <TextInput type="number" min={0} max={5} step={0.5} value={rangeValue} onChange={(e) => setRangeValue(e.target.value)} color={ratingErrorText ? 'failure' : 'gray'} />  // Event handler assignment
                         
                     </div>
                     
@@ -119,8 +119,8 @@ function BookRating(props) {
                         </span>
             </ModalBody>
             <ModalFooter>
-            <Button onClick={() => handleRateBook()} disabled={saveButtonDisabled}>Save</Button>
-            <Button color="gray" onClick={() => setOpenModal(false)}>
+            <Button onClick={() => handleRateBook()} disabled={saveButtonDisabled}>Save</Button>  // Event handler assignment
+            <Button color="gray" onClick={() => setOpenModal(false)}>  // Event handler assignment
                 Close
             </Button>
             </ModalFooter>
@@ -134,4 +134,4 @@ BookRating.defaultProps = {
     disableGiveRating: false,
 }
 
-export default BookRating
+export default BookRating  // Export for use in other modules

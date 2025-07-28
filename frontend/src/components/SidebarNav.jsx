@@ -1,17 +1,17 @@
-import {useState} from 'react';
+import {useState} from 'react';  // React library import
 import SearchBar from './SearchBar'
 import DarkModeToggle from './DarkModeToggle';
-import { Sidebar, SidebarLogo, SidebarItem, SidebarItemGroup, SidebarItems, Modal, ModalBody, ModalHeader} from "flowbite-react";
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth.service';
-import { RiBook2Line } from "react-icons/ri";
-import { RiUser3Line } from "react-icons/ri";
-import { RiLogoutBoxLine } from "react-icons/ri";
-import { RiSideBarLine } from "react-icons/ri";
-import { RiSideBarFill  } from "react-icons/ri";
-import { RiSearch2Line } from "react-icons/ri";
-import { RiLoginBoxLine } from "react-icons/ri";
-import { RiSettings4Line } from "react-icons/ri";
+import { Sidebar, SidebarLogo, SidebarItem, SidebarItemGroup, SidebarItems, Modal, ModalBody, ModalHeader} from "flowbite-react";  // React library import
+import { Link, useLocation, useNavigate } from 'react-router-dom';  // React library import
+import AuthService from '../services/auth.service';  // Service layer import for API communication
+import { RiBook2Line } from "react-icons/ri";  // React library import
+import { RiUser3Line } from "react-icons/ri";  // React library import
+import { RiLogoutBoxLine } from "react-icons/ri";  // React library import
+import { RiSideBarLine } from "react-icons/ri";  // React library import
+import { RiSideBarFill  } from "react-icons/ri";  // React library import
+import { RiSearch2Line } from "react-icons/ri";  // React library import
+import { RiLoginBoxLine } from "react-icons/ri";  // React library import
+import { RiSettings4Line } from "react-icons/ri";  // React library import
 
 const customTheme = {
   root: {
@@ -26,13 +26,13 @@ const customTheme = {
   }
 };
 
-export default function SidebarNav() {
-    const [sidebarState, setSidebarState] = useState(true);
-    const [openSearchModal, setOpenSearchModal] = useState(false);
-    let location = useLocation();
-    let navigate = useNavigate();
+export default function SidebarNav() {  // Export for use in other modules
+    const [sidebarState, setSidebarState] = useState(true);  // React state hook for component state management
+    const [openSearchModal, setOpenSearchModal] = useState(false);  // React state hook for component state management
+    let location = useLocation();  // React Router hook for current location
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
 
-    return (
+    return (  // JSX return statement
         <>
         <Sidebar collapsed={sidebarState} theme={customTheme} className="hidden md:block">
           <SidebarLogo as={Link} href="/" img="/new-icon.svg" className="mr-3 h-16 sm:h-20" alt="BookVault Logo">
@@ -41,7 +41,7 @@ export default function SidebarNav() {
             <SidebarItems>
                   <SidebarItemGroup>
                     {sidebarState ? (
-                      <SidebarItem icon={RiSearch2Line} onClick={() => setOpenSearchModal(true)}>Search</SidebarItem>
+                      <SidebarItem icon={RiSearch2Line} onClick={() => setOpenSearchModal(true)}>Search</SidebarItem>  // Event handler assignment
                     ) :( 
                     <div className="flex items-center justify-center rounded-xl p-3 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 font-medium">
                       <SearchBar hideESCIcon={true} showAttribution={false}></SearchBar>
@@ -55,7 +55,7 @@ export default function SidebarNav() {
                     <SidebarItem as={Link} to="/settings" active={location.pathname == "/settings"} icon={RiSettings4Line}>Settings</SidebarItem>
 
                     {AuthService.getCurrentUser() ? ( 
-                      <SidebarItem href="" onClick={() => (AuthService.logout(), navigate("/"))} icon={RiLogoutBoxLine}>Logout</SidebarItem>
+                      <SidebarItem href="" onClick={() => (AuthService.logout(), navigate("/"))} icon={RiLogoutBoxLine}>Logout</SidebarItem>  // Event handler assignment
                     ):(
                       <Link to="/login">
                         <SidebarItem href="" icon={RiLoginBoxLine}>Login</SidebarItem>
@@ -71,7 +71,7 @@ export default function SidebarNav() {
                       </div>
                     </div>
                   )}
-                  <SidebarItem icon={sidebarState ? RiSideBarFill : RiSideBarLine  } onClick={() => setSidebarState(!sidebarState)}>
+                  <SidebarItem icon={sidebarState ? RiSideBarFill : RiSideBarLine  } onClick={() => setSidebarState(!sidebarState)}>  // Event handler assignment
                     {sidebarState ? (
                       <span>Expand</span>
                     ): (
@@ -104,7 +104,7 @@ export default function SidebarNav() {
                 <button 
                     type="button" 
                     className="rounded-t-xl inline-flex flex-col items-center justify-center px-5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300" 
-                    onClick={() => setOpenSearchModal(true)}
+                    onClick={() => setOpenSearchModal(true)}  // Event handler assignment
                     aria-label="Open search"
                 >
                     <RiSearch2Line className="w-5 h-5 mb-2 text-slate-600 dark:text-slate-400"/>

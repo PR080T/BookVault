@@ -1,7 +1,7 @@
 
 
 function BookStatsCard(props) {
-  return (
+  return (  // JSX return statement
     <div className="flex flex-col gap-2 items-center">
         <div>
             {props.icon}
@@ -16,4 +16,4 @@ function BookStatsCard(props) {
   )
 }
 
-export default BookStatsCard
+export default BookStatsCard  // Export for use in other modules

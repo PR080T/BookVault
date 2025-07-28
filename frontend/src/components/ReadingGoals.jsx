@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Card, Button, Modal, ModalBody, ModalHeader, ModalFooter, TextInput, Label, Progress } from "flowbite-react";
-import { RiFocus3Line, RiTrophyLine, RiEditLine } from "react-icons/ri";
+import { useState, useEffect } from 'react';  // React library import
+import { Card, Button, Modal, ModalBody, ModalHeader, ModalFooter, TextInput, Label, Progress } from "flowbite-react";  // React library import
+import { RiFocus3Line, RiTrophyLine, RiEditLine } from "react-icons/ri";  // React library import
 import { useStats } from '../contexts/StatsContext';
 
 function ReadingGoals() {
-    const [showModal, setShowModal] = useState(false);
-    const [yearlyGoal, setYearlyGoal] = useState(12); // Default goal of 12 books per year
+    const [showModal, setShowModal] = useState(false);  // React state hook for component state management
+    const [yearlyGoal, setYearlyGoal] = useState(12);  // Default goal of 12 books per year
     const { stats, loading } = useStats();
     const booksRead = stats.read;
 
-    useEffect(() => {
-        // Load goal from localStorage
+    useEffect(() => {  // React effect hook for side effects
+  // Load goal from localStorage
         const savedGoal = localStorage.getItem('readingGoal');
         if (savedGoal) {
-            setYearlyGoal(parseInt(savedGoal));
+            setYearlyGoal(parseInt(savedGoal));  // State update
         }
     }, []);
 
     const handleSaveGoal = () => {
         localStorage.setItem('readingGoal', yearlyGoal.toString());
-        setShowModal(false);
+        setShowModal(false);  // State update
     };
 
     const progressPercentage = Math.min((booksRead / yearlyGoal) * 100, 100);
@@ -36,7 +36,7 @@ function ReadingGoals() {
             const startOfYear = new Date(now.getFullYear(), 0, 1);
             const daysPassed = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24));
             
-            // More accurate leap year calculation
+  // More accurate leap year calculation
             const isLeapYear = (year) => (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
             const daysInYear = isLeapYear(now.getFullYear()) ? 366 : 365;
             
@@ -57,7 +57,7 @@ function ReadingGoals() {
     };
 
     if (loading) {
-        return (
+        return (  // JSX return statement
             <Card className="mb-6 animate-pulse">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ function ReadingGoals() {
         );
     }
 
-    return (
+    return (  // JSX return statement
         <>
             <Card className="mb-6">
                 <div className="flex items-center justify-between mb-4">
@@ -95,7 +95,7 @@ function ReadingGoals() {
                     <Button
                         size="xs"
                         color="gray"
-                        onClick={() => setShowModal(true)}
+                        onClick={() => setShowModal(true)}  // Event handler assignment
                         className="flex items-center gap-1"
                     >
                         <RiEditLine className="w-3 h-3" />
@@ -158,7 +158,7 @@ function ReadingGoals() {
                                 min="1"
                                 max="365"
                                 value={yearlyGoal}
-                                onChange={(e) => setYearlyGoal(parseInt(e.target.value) || 1)}
+                                onChange={(e) => setYearlyGoal(parseInt(e.target.value) || 1)}  // Event handler assignment
                                 placeholder="Enter your reading goal"
                             />
                         </div>
@@ -168,8 +168,8 @@ function ReadingGoals() {
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={handleSaveGoal}>Save Goal</Button>
-                    <Button color="gray" onClick={() => setShowModal(false)}>
+                    <Button onClick={handleSaveGoal}>Save Goal</Button>  // Event handler assignment
+                    <Button color="gray" onClick={() => setShowModal(false)}>  // Event handler assignment
                         Cancel
                     </Button>
                 </ModalFooter>
@@ -178,4 +178,4 @@ function ReadingGoals() {
     );
 }
 
-export default ReadingGoals;
+export default ReadingGoals;  // Export for use in other modules

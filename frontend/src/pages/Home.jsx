@@ -1,13 +1,13 @@
-import { Button } from 'flowbite-react';
-import { useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Button } from 'flowbite-react';  // React library import
+import { useEffect } from 'react'  // React library import
+import { useNavigate, Link } from 'react-router-dom'  // React library import
 
-import AuthService from '../services/auth.service';
+import AuthService from '../services/auth.service';  // Service layer import for API communication
 import AnimatedLayout from '../AnimatedLayout';
 
 function Home() {
-    let navigate = useNavigate();
-    useEffect(() => {
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
+    useEffect(() => {  // React effect hook for side effects
         if(String(import.meta.env.VITE_DISABLE_HOMEPAGE).toLowerCase() === "true") {
             return navigate("/library")
         }
@@ -17,7 +17,7 @@ function Home() {
     }, [navigate])
     
 
-    return (
+    return (  // JSX return statement
         <AnimatedLayout>
         <div className="min-h-screen flex flex-col justify-between">
         <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -84,4 +84,4 @@ function Home() {
     )
 }
 
-export default Home
+export default Home  // Export for use in other modules

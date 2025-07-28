@@ -1,14 +1,14 @@
-from flask.cli import AppGroup
+from flask.cli import AppGroup  # Flask web framework components
 import sys
 from models import Tasks
 from db import db
 
-# AppGroup for CLI task commands
+  # AppGroup for CLI task commands
 tasks_command = AppGroup('tasks')
 
 
-@tasks_command.command("clear")
-def clear_tasks():
+@tasks_command.command("clear")  # Decorator: tasks_command.command
+def clear_tasks():  # Function: clear_tasks
     """Clear all pending tasks from the queue."""
     print("[CLEAR QUEUED TASKS]")
 
@@ -41,18 +41,18 @@ def clear_tasks():
 @tasks_command.command("queue")
 def list_tasks():
     """List all pending tasks in the queue."""
-    try:
+    try:  # Exception handling block
         all_tasks = Tasks.query.filter(Tasks.status == "pending").all()
         print(f"🕒 IN QUEUE: {len(all_tasks)} task(s)")
-        for task in all_tasks:
+        for task in all_tasks:  # Loop iteration
             print(f"- {task.task_type} (ID: {task.id})")
-    except Exception as e:
+    except Exception as e:  # Exception handler
         print(f"❌ Error listing tasks: {e}")
         sys.exit(1)
 
 
-@tasks_command.command("run")
-def run_tasks():
+@tasks_command.command("run")  # Decorator: tasks_command.command
+def run_tasks():  # Function: run_tasks
     """Run all pending tasks in the queue."""
     print("[RUNNING QUEUED TASKS]")
     
@@ -69,13 +69,13 @@ def run_tasks():
             print(f"📋 Processing task: {task.task_type} (ID: {task.id})")
             
             try:
-                # Update task status to running
+  # Update task status to running
                 task.status = "running"
                 task.progress = 0
                 db.session.commit()
                 
-                # Here you would implement the actual task processing logic
-                # For now, we'll just simulate completion
+  # Here you would implement the actual task processing logic
+  # For now, we'll just simulate completion
                 task.status = "completed"
                 task.progress = 100
                 task.result = f"Task {task.task_type} completed successfully"

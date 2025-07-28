@@ -1,5 +1,5 @@
-import { Navbar, NavbarBrand, NavbarToggle, NavbarCollapse, NavbarLink } from 'flowbite-react'
-import { Link, useLocation } from 'react-router-dom';
+import { Navbar, NavbarBrand, NavbarToggle, NavbarCollapse, NavbarLink } from 'flowbite-react'  // React library import
+import { Link, useLocation } from 'react-router-dom';  // React library import
 import DarkModeToggle from './DarkModeToggle';
 
 const customThemeNav = {
@@ -21,9 +21,9 @@ const customThemeNav = {
 };
 
 function NavigationMenu() {
-    let location = useLocation();
+    let location = useLocation();  // React Router hook for current location
 
-    return (
+    return (  // JSX return statement
         <>
           <div className="pb-10">
           <Navbar theme={customThemeNav}>
@@ -54,4 +54,4 @@ function NavigationMenu() {
     )
 }
 
-export default NavigationMenu
+export default NavigationMenu  // Export for use in other modules

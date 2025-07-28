@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { Modal, ModalHeader, ModalBody, ModalFooter, TextInput, Button, Popover, Label} from 'flowbite-react';
+import { useState } from 'react'  // React library import
+import { Modal, ModalHeader, ModalBody, ModalFooter, TextInput, Button, Popover, Label} from 'flowbite-react';  // React library import
 import useToast from '../../toast/useToast';
-import BooksService from '../../services/books.service';
-import { RiQuestionLine } from "react-icons/ri";
+import BooksService from '../../services/books.service';  // Service layer import for API communication
+import { RiQuestionLine } from "react-icons/ri";  // React library import
 
 function EditBookModal(props) {
-    const [totalPages, setTotalPages] = useState(props.totalPages);
+    const [totalPages, setTotalPages] = useState(props.totalPages);  // React state hook for component state management
     const toast = useToast(4000);
     
     const handleEditBook = () => {
@@ -39,7 +39,7 @@ function EditBookModal(props) {
         </div>
     )
 
-    return (
+    return (  // JSX return statement
         <>
             <Modal show={props.open} onClose={() => props.close(false)}>
                 <ModalHeader className="border-gray-200">Edit book</ModalHeader>
@@ -51,12 +51,12 @@ function EditBookModal(props) {
                                 <span><RiQuestionLine className="dark:text-white"/></span>
                             </Popover>
                         </div>
-                        <TextInput id="editTotalPages" type="number" value={totalPages} onChange={(e) => setTotalPages(e.target.value)} />
+                        <TextInput id="editTotalPages" type="number" value={totalPages} onChange={(e) => setTotalPages(e.target.value)} />  // Event handler assignment
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                <Button onClick={() => handleEditBook()}>Save</Button>
-                <Button color="gray" onClick={() => props.close(false)}>
+                <Button onClick={() => handleEditBook()}>Save</Button>  // Event handler assignment
+                <Button color="gray" onClick={() => props.close(false)}>  // Event handler assignment
                     Close
                 </Button>
                 </ModalFooter>
@@ -65,4 +65,4 @@ function EditBookModal(props) {
     )
 }
 
-export default EditBookModal
+export default EditBookModal  // Export for use in other modules

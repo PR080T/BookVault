@@ -1,35 +1,35 @@
-from flask import Blueprint, send_from_directory, jsonify, request, current_app
-from flask_jwt_extended import jwt_required, get_jwt
+from flask import Blueprint, send_from_directory, jsonify, request, current_app  # Flask web framework components
+from flask_jwt_extended import jwt_required, get_jwt  # Flask web framework components
 from models import Files, FilesSchema, Books
 from db import db
-import os
+import os  # Operating system interface
 import csv
 
 files_endpoint = Blueprint('files', __name__)
 
 
-def get_allowed_extensions():
+def get_allowed_extensions():  # Getter method for allowed_extensions
     return set(current_app.config.get("ALLOWED_EXTENSIONS", {"csv"}))
 
 
 @files_endpoint.route("/v1/files/<filename>", methods=["GET"])
-@jwt_required()
-def download_file(filename):
+@jwt_required()  # Requires valid JWT token for access
+def download_file(filename):  # Function: download_file
     claim_id = get_jwt()["id"]
     file = Files.query.filter_by(filename=filename, owner_id=claim_id).first()
 
-    if file:
-        try:
+    if file:  # Conditional statement
+        try:  # Exception handling block
             export_folder = os.getenv("EXPORT_FOLDER", "export_data")
             return send_from_directory(
                 os.path.abspath(export_folder), filename, as_attachment=True
             )
-        except FileNotFoundError:
+        except FileNotFoundError:  # Exception handler
             return jsonify({
                 "error": "Not found",
                 "message": "File not found on disk"
             }), 404
-        except Exception as e:
+        except Exception as e:  # Exception handler
             current_app.logger.error(f"Error downloading file: {e}")
             return jsonify({
                 "error": "Internal server error",
@@ -42,79 +42,79 @@ def download_file(filename):
 
 
 @files_endpoint.route("/v1/files", methods=["GET"])
-@jwt_required()
-def get_files():
+@jwt_required()  # Requires valid JWT token for access
+def get_files():  # Getter method for files
     claim_id = get_jwt()["id"]
     file_schema = FilesSchema(many=True)
     files = Files.query.filter_by(owner_id=claim_id).order_by(
         Files.created_at.desc()
     ).all()
 
-    if files:
+    if files:  # Conditional statement
         return jsonify(file_schema.dump(files)), 200
     return jsonify({"error": "Not found", "message": "No files found"}), 404
 
 
-def allowed_file(filename):
+def allowed_file(filename):  # Function: allowed_file
     return ('.' in filename and
             filename.rsplit('.', 1)[1].lower() in get_allowed_extensions())
 
 
 @files_endpoint.route("/v1/files", methods=["POST"])
-@jwt_required()
-def upload_file_for_import():
+@jwt_required()  # Requires valid JWT token for access
+def upload_file_for_import():  # Function: upload_file_for_import
     claim_id = get_jwt()["id"]
 
-    if "file" not in request.files:
+    if "file" not in request.files:  # Conditional statement
         return jsonify({
             "error": "Invalid file submission",
             "message": "The 'file' field is required."
         }), 400
-    if "type" not in request.form:
+    if "type" not in request.form:  # Conditional statement
         return jsonify({
             "error": "Invalid file submission",
             "message": "The 'type' field is required."
         }), 400
 
     file = request.files["file"]
-    if file.filename == "":
+    if file.filename == "":  # Conditional statement
         return jsonify({
             "error": "Missing file",
             "message": "No file uploaded."
         }), 400
 
-    if file and allowed_file(file.filename):
+    if file and allowed_file(file.filename):  # Conditional statement
         import_type = request.form.get("type", "").lower()
         allow_duplicates = (
             request.form.get("allow_duplicates", "false").lower() == "true"
         )
         count_imported = 0
 
-        if import_type == "csv":
+        if import_type == "csv":  # Conditional statement
             required_headers = {
                 "title", "isbn", "description", "reading_status",
                 "current_page", "total_pages", "author", "rating"
             }
-        elif import_type == "goodreads":
+        elif import_type == "goodreads":  # Alternative condition
             required_headers = {
                 "Title", "ISBN13", "Author", "My Rating",
                 "Number of Pages", "Exclusive Shelf"
             }
-        else:
+        else:  # Default case
             return jsonify({
                 "error": "Invalid value",
                 "message": "type must be one of: csv, goodreads."
             }), 400
 
-        try:
+        try:  # Exception handling block
             stream = file.stream.read().decode("utf-8").splitlines()
             reader = csv.DictReader(stream)
-        except UnicodeDecodeError:
+        except UnicodeDecodeError:  # Exception handler
             return jsonify({
                 "error": "Invalid file encoding",
                 "message": "File must be UTF-8 encoded"
             }), 400
-        except Exception as e:
+        except Exception as e:  # Exception handler
             current_app.logger.error(f"CSV read error: {e}")
             return jsonify({
                 "error": "File reading error",
@@ -122,15 +122,15 @@ def upload_file_for_import():
             }), 400
 
         missing = required_headers - set(reader.fieldnames or [])
-        if missing:
+        if missing:  # Conditional statement
             return jsonify({
                 "error": "Missing required headers",
                 "message": f"Missing headers: {list(missing)}"
             }), 400
 
-        try:
-            for row in reader:
-                if import_type == "csv":
+        try:  # Exception handling block
+            for row in reader:  # Loop iteration
+                if import_type == "csv":  # Conditional statement
                     rating = _safe_float(row.get("rating"))
                     current_page = _safe_int(row.get("current_page"))
                     total_pages = _safe_int(row.get("total_pages"))
@@ -151,10 +151,10 @@ def upload_file_for_import():
                     shelf = row.get("Exclusive Shelf", "").lower()
                     status = _map_shelf_to_status(shelf)
 
-                if not isbn:
+                if not isbn:  # Conditional statement
                     continue
 
-                if (allow_duplicates or
+                if (allow_duplicates or  # Conditional statement
                         not Books.query.filter_by(
                             owner_id=claim_id, isbn=isbn).first()):
                     book = Books(
@@ -175,7 +175,7 @@ def upload_file_for_import():
                 "message": (f"Imported {count_imported}/"
                            f"{reader.line_num - 1} books.")
             }), 200
-        except Exception as e:
+        except Exception as e:  # Exception handler
             db.session.rollback()
             current_app.logger.error(f"Import failed: {e}")
             return jsonify({
@@ -189,23 +189,23 @@ def upload_file_for_import():
     }), 400
 
 
-def _safe_float(value):
-    try:
+def _safe_float(value):  # Function: _safe_float
+    try:  # Exception handling block
         val = float(value)
         return val if 0 <= val <= 5 else None
-    except (ValueError, TypeError):
+    except (ValueError, TypeError):  # Exception handler
         return None
 
 
-def _safe_int(value):
-    try:
+def _safe_int(value):  # Function: _safe_int
+    try:  # Exception handling block
         return int(value)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError):  # Exception handler
         return 0
 
 
-def _map_shelf_to_status(shelf):
-    mapping = {
+def _map_shelf_to_status(shelf):  # Function: _map_shelf_to_status
+    mapping = {  # Flask application instance
         "to-read": "To be read",
         "read": "Read",
         "currently-reading": "Currently reading",

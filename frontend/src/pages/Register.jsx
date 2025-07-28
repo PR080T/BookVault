@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth.service';
-import { Button, Label, TextInput, Card } from 'flowbite-react';
-import { RiMailLine } from "react-icons/ri";
-import { RiLockPasswordLine } from "react-icons/ri";
-import { RiUser3Line } from "react-icons/ri";
+import { useState, useEffect } from 'react'  // React library import
+import { Link, useNavigate } from 'react-router-dom';  // React library import
+import AuthService from '../services/auth.service';  // Service layer import for API communication
+import { Button, Label, TextInput, Card } from 'flowbite-react';  // React library import
+import { RiMailLine } from "react-icons/ri";  // React library import
+import { RiLockPasswordLine } from "react-icons/ri";  // React library import
+import { RiUser3Line } from "react-icons/ri";  // React library import
 import useToast from '../toast/useToast';
 import AnimatedLayout from '../AnimatedLayout';
 
 function Register() {
-    const [email, setEmail] = useState("");
-    const [name, setName] = useState("");
-    const [password, setPassword] = useState("");
-    const [passwordConf, setPasswordConf] = useState("");
-    const [passwordErrorText, setPasswordErrorText] = useState();
-    const [registerButtonDisabled, setRegisterButtonDisabled] = useState(true);
+    const [email, setEmail] = useState("");  // React state hook for component state management
+    const [name, setName] = useState("");  // React state hook for component state management
+    const [password, setPassword] = useState("");  // React state hook for component state management
+    const [passwordConf, setPasswordConf] = useState("");  // React state hook for component state management
+    const [passwordErrorText, setPasswordErrorText] = useState();  // React state hook for component state management
+    const [registerButtonDisabled, setRegisterButtonDisabled] = useState(true);  // React state hook for component state management
 
-    let navigate = useNavigate();
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
     const toast = useToast(8000);
 
     const handleRegistration = (e) => {
@@ -54,7 +54,7 @@ function Register() {
         return null;
     };
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         let errorText = "";
         
         if (password) {
@@ -68,14 +68,14 @@ function Register() {
             errorText = "Passwords do not match";
         }
         
-        setPasswordErrorText(errorText);
-        setRegisterButtonDisabled(!!errorText || !password || !passwordConf || !email || !name);
+        setPasswordErrorText(errorText);  // State update
+        setRegisterButtonDisabled(!!errorText || !password || !passwordConf || !email || !name);  // State update
     }, [password, passwordConf, email, name])
 
 
 
 
-  return (
+  return (  // JSX return statement
     <AnimatedLayout>
       <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="w-full max-w-lg space-y-10">
@@ -90,7 +90,7 @@ function Register() {
 
           {/* Registration Form */}
           <Card className="glass-effect elegant-shadow-lg border-0 rounded-2xl">
-            <form className="space-y-8 p-8" onSubmit={handleRegistration}>
+            <form className="space-y-8 p-8" onSubmit={handleRegistration}>  // Event handler assignment
               <div>
                 <div className="mb-2 block">
                   <Label htmlFor="email1" className="text-sm font-medium text-gray-900 dark:text-white">Email address</Label>
@@ -105,7 +105,7 @@ function Register() {
                     placeholder="name@example.com" 
                     required 
                     value={email} 
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}  // Event handler assignment
                     className="w-full pl-10"
                   />
                 </div>
@@ -125,7 +125,7 @@ function Register() {
                     placeholder="John Doe"
                     required 
                     value={name} 
-                    onChange={e => setName(e.target.value)}
+                    onChange={e => setName(e.target.value)}  // Event handler assignment
                     className="w-full pl-10"
                   />
                 </div>
@@ -145,7 +145,7 @@ function Register() {
                     placeholder="••••••••"
                     required 
                     value={password} 
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}  // Event handler assignment
                     className="w-full pl-10"
                   />
                 </div>
@@ -185,7 +185,7 @@ function Register() {
                     placeholder="••••••••"
                     required 
                     value={passwordConf} 
-                    onChange={e => setPasswordConf(e.target.value)} 
+                    onChange={e => setPasswordConf(e.target.value)}  // Event handler assignment
                     color={passwordErrorText ? 'failure' : 'gray'} 
                     helperText={passwordErrorText}
                     className="w-full pl-10"
@@ -220,4 +220,4 @@ function Register() {
   )
 }
 
-export default Register
+export default Register  // Export for use in other modules

@@ -17,18 +17,18 @@ from auth.auth_route import auth_endpoint
 from auth.user_route import user_endpoint
 
 __all__ = [
-    # Models
+  # Models
     "User",
     "UserSchema",
     "Verification",
     "VerificationSchema",
     "RevokedTokenModel",
 
-    # Decorators
+  # Decorators
     "require_role",
     "disable_route",
 
-    # Blueprints
+  # Blueprints
     "auth_endpoint",
     "user_endpoint"
 ]

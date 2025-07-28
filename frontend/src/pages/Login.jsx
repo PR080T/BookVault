@@ -1,23 +1,23 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
-import AuthService from '../services/auth.service';
-import { Button, Label, TextInput, Card } from 'flowbite-react';
-import { RiMailLine } from "react-icons/ri";
-import { RiLockPasswordLine } from "react-icons/ri";
+import { useState } from 'react'  // React library import
+import { Link, useNavigate } from 'react-router-dom';  // React library import
+import AuthService from '../services/auth.service';  // Service layer import for API communication
+import { Button, Label, TextInput, Card } from 'flowbite-react';  // React library import
+import { RiMailLine } from "react-icons/ri";  // React library import
+import { RiLockPasswordLine } from "react-icons/ri";  // React library import
 import useToast from '../toast/useToast';
 import AnimatedLayout from '../AnimatedLayout';
 
 
 function Login() {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    let navigate = useNavigate();
+    const [username, setUsername] = useState("");  // React state hook for component state management
+    const [password, setPassword] = useState("");  // React state hook for component state management
+    const [isLoading, setIsLoading] = useState(false);  // React state hook for component state management
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
     const toast = useToast(8000);
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        setIsLoading(true);  // State update
         
         try {
             await AuthService.login(username, password);
@@ -31,7 +31,7 @@ function Login() {
                 error.message ||
                 error.toString();
             
-            // Show more user-friendly error messages
+  // Show more user-friendly error messages
             if (resMessage.includes("Network error") || resMessage.includes("Unable to connect")) {
                 toast("error", "Cannot connect to server. Please check your internet connection and try again.");
             } else if (resMessage.includes("timeout")) {
@@ -40,11 +40,11 @@ function Login() {
                 toast("error", resMessage);
             }
         } finally {
-            setIsLoading(false);
+            setIsLoading(false);  // State update
         }
     }
 
-  return (
+  return (  // JSX return statement
     <AnimatedLayout>
       <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="w-full max-w-lg space-y-10">
@@ -61,7 +61,7 @@ function Login() {
           {String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true" && ( 
             <div className="glass-effect rounded-2xl p-6 text-center elegant-shadow border border-blue-200/50 dark:border-blue-800/50">
               <p className="text-xl font-bold text-blue-700 dark:text-blue-300 mb-2">This is a demo of BookVault</p>
-              <p className="text-blue-600 dark:text-blue-400 mb-4">Some features are <a className="font-semibold underline hover:no-underline" href="https://github.com/Mozzo1000/booklogr/blob/main/demo/README.md">disabled.</a></p>
+              <p className="text-blue-600 dark:text-blue-400 mb-4">Some features are <a className="font-semibold underline hover:no-underline" href="https:  // github.com/Mozzo1000/booklogr/blob/main/demo/README.md">disabled.</a></p>
               <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
                 <p className="font-bold text-slate-900 dark:text-white mb-2">Demo Credentials:</p>
                 <p className="text-sm text-slate-600 dark:text-slate-400">Email: demo@bookvault.app</p>
@@ -72,7 +72,7 @@ function Login() {
 
           {/* Login Form */}
           <Card className="glass-effect elegant-shadow-lg border-0 rounded-2xl">
-            <form className="space-y-8 p-8" onSubmit={handleLogin}>
+            <form className="space-y-8 p-8" onSubmit={handleLogin}>  // Event handler assignment
               <div>
                 <div className="mb-3 block">
                   <Label htmlFor="email1" className="text-base font-semibold text-slate-700 dark:text-slate-200">Email address</Label>
@@ -87,7 +87,7 @@ function Login() {
                     placeholder="name@example.com" 
                     required 
                     value={username} 
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={e => setUsername(e.target.value)}  // Event handler assignment
                     className="w-full pl-10"
                     sizing="lg"
                   />
@@ -107,7 +107,7 @@ function Login() {
                     placeholder="••••••••"
                     required 
                     value={password} 
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}  // Event handler assignment
                     className="w-full pl-10"
                     sizing="lg"
                   />
@@ -144,4 +144,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Login  // Export for use in other modules

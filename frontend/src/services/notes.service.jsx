@@ -10,7 +10,7 @@ const remove = (id) => {
     return api.delete("/v1/notes/" + encodedId);
 };
 
-export default {
+export default {  // Export for use in other modules
     edit,
     remove,
 };

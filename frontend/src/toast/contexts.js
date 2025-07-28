@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext } from "react";  // React library import
 
-export const ToastStateContext = createContext({ toasts: [] });
-export const ToastDispatchContext = createContext(null);
+export const ToastStateContext = createContext({ toasts: [] });  // Export for use in other modules
+export const ToastDispatchContext = createContext(null);  // Export for use in other modules

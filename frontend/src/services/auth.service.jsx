@@ -2,7 +2,7 @@ import api, { apiWithRetry, checkConnection } from "./api";
 
 const register = async (email, name, password) => {
     try {
-        // Check server connection first
+  // Check server connection first
         const connectionStatus = await checkConnection();
         if (!connectionStatus.isConnected) {
             throw new Error(`Server unavailable: ${connectionStatus.message}`);
@@ -18,7 +18,7 @@ const register = async (email, name, password) => {
             throw new Error("Unable to connect to server. Please check your internet connection and try again.");
         }
         
-        // Handle specific error cases
+  // Handle specific error cases
         if (error.response?.status === 422) {
             const message = error.response.data?.message || "Validation error";
             throw new Error(message);
@@ -35,7 +35,7 @@ const register = async (email, name, password) => {
 
 const login = async (email, password) => {
     try {
-        // First check if server is reachable
+  // First check if server is reachable
         const connectionStatus = await checkConnection();
         if (!connectionStatus.isConnected) {
             throw new Error(`Server unavailable: ${connectionStatus.message}`);
@@ -52,7 +52,7 @@ const login = async (email, password) => {
 
         return response.data;
     } catch (error) {
-        // Enhanced error handling
+  // Enhanced error handling
         if (error.isNetworkError) {
             throw new Error("Unable to connect to server. Please check your internet connection and try again.");
         }
@@ -64,11 +64,11 @@ const logout = async () => {
     try {
         const user = getCurrentUser();
         if (user && user.access_token) {
-            // Send logout request to invalidate the token
+  // Send logout request to invalidate the token
             await api.post("/v1/token/logout/access", {});
         }
         
-        // Also try to revoke refresh token if available
+  // Also try to revoke refresh token if available
         if (user && user.refresh_token) {
             try {
                 await api.post("/v1/token/logout/refresh", {}, {
@@ -80,7 +80,7 @@ const logout = async () => {
         }
     } catch (error) {
         console.error("Error during logout:", error);
-        // Continue with logout even if API call fails
+  // Continue with logout even if API call fails
     } finally {
         localStorage.removeItem("auth_user");
     }
@@ -112,13 +112,13 @@ const refreshToken = async () => {
         localStorage.setItem("auth_user", JSON.stringify(updatedUser));
         return updatedUser;
     } catch (error) {
-        // If refresh fails, remove user data and redirect to login
+  // If refresh fails, remove user data and redirect to login
         localStorage.removeItem("auth_user");
         throw error;
     }
 };
 
-export default {
+export default {  // Export for use in other modules
     register,
     login,
     logout,

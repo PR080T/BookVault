@@ -1,11 +1,11 @@
-import { RiBook2Line, RiBookOpenLine, RiBookmarkLine, RiTrophyLine } from "react-icons/ri";
+import { RiBook2Line, RiBookOpenLine, RiBookmarkLine, RiTrophyLine } from "react-icons/ri";  // React library import
 import { useStats } from '../../contexts/StatsContext';
 
 function ReadingStats() {
     const { stats, loading } = useStats();
 
     if (loading) {
-        return (
+        return (  // JSX return statement
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
                     { color: 'bg-green-50 dark:bg-green-900/20', iconColor: 'bg-green-200 dark:bg-green-700' },
@@ -58,7 +58,7 @@ function ReadingStats() {
         }
     ];
 
-    return (
+    return (  // JSX return statement
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {statItems.map((item, index) => (
                 <div key={index} className={`${item.bgColor} rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200`}>
@@ -79,4 +79,4 @@ function ReadingStats() {
     );
 }
 
-export default ReadingStats;
+export default ReadingStats;  // Export for use in other modules

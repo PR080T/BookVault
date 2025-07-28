@@ -32,7 +32,7 @@ const retry = (id) => {
     return api.post(`/v1/tasks/${id}/retry`);
 };
 
-export default {
+export default {  // Export for use in other modules
     create,
     getStatus,
     retry,

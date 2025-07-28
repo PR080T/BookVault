@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime  # Date and time handling
 from werkzeug.security import generate_password_hash, check_password_hash
-from marshmallow import fields as ma_fields
+from marshmallow import fields as ma_fields  # JSON serialization components
 from db import db, ma
 
-# -------------------- VERIFICATION --------------------
+  # -------------------- VERIFICATION --------------------
 
 
 class Verification(db.Model):
@@ -14,22 +14,22 @@ class Verification(db.Model):
     code = db.Column(db.String(255), nullable=True)
     code_valid_until = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Verification, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
 
-class VerificationSchema(ma.SQLAlchemyAutoSchema):
+class VerificationSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for verification
     class Meta:
         model = Verification
         fields = ("status",)
         load_instance = True
 
 
-# -------------------- USER --------------------
+  # -------------------- USER --------------------
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -39,31 +39,31 @@ class User(db.Model):
     role = db.Column(db.String(50), default="user")
     status = db.Column(db.String(50), default="active")
     verification = db.relationship(
-        "Verification", uselist=False, backref="user", 
+        "Verification", uselist=False, backref="user",
         cascade="all, delete-orphan"
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(User, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_email(cls, email: str):
+    @classmethod  # Decorator: classmethod
+    def find_by_email(cls, email: str):  # Database query method to find records
         return cls.query.filter_by(email=email).first()
 
-    @staticmethod
-    def generate_hash(password: str) -> str:
+    @staticmethod  # Decorator: staticmethod
+    def generate_hash(password: str) -> str:  # Function: generate_hash
         return generate_password_hash(password)
 
-    @staticmethod
-    def verify_hash(password: str, hash: str) -> bool:
+    @staticmethod  # Decorator: staticmethod
+    def verify_hash(password: str, hash: str) -> bool:  # Function: verify_hash
         return check_password_hash(hash, password)
 
 
-class UserSchema(ma.SQLAlchemyAutoSchema):
+class UserSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for user
     verification = ma_fields.Nested(VerificationSchema)
 
     class Meta:
@@ -72,7 +72,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# -------------------- PROFILE --------------------
+  # -------------------- PROFILE --------------------
 class Profile(db.Model):
     __tablename__ = 'profiles'
     id = db.Column(db.Integer, primary_key=True)
@@ -87,22 +87,22 @@ class Profile(db.Model):
     visibility = db.Column(db.String(50), default="private")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # Database connection
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Profile, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner(cls, owner_id: int):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner(cls, owner_id: int):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id).first()
 
 
-class ProfileSchema(ma.SQLAlchemyAutoSchema):
+class ProfileSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for profile
     class Meta:
         model = Profile
         fields = (
@@ -112,7 +112,7 @@ class ProfileSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# -------------------- BOOKS --------------------
+  # -------------------- BOOKS --------------------
 class Books(db.Model):
     __tablename__ = 'books'
     id = db.Column(db.Integer, primary_key=True)
@@ -127,31 +127,31 @@ class Books(db.Model):
     rating = db.Column(db.Numeric(3, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # Database connection
     )
 
-    # Relationships
+  # Relationships
     notes = db.relationship(
         "Notes", backref="book", cascade="all, delete-orphan"
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Books, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
     
-    def delete(self):
+    def delete(self):  # Function: delete
         db.session.delete(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner_and_isbn(cls, owner_id: int, isbn: str):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner_and_isbn(cls, owner_id: int, isbn: str):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id, isbn=isbn).first()
 
 
-# -------------------- NOTES --------------------
+  # -------------------- NOTES --------------------
 class Notes(db.Model):
     __tablename__ = 'notes'
     id = db.Column(db.Integer, primary_key=True)
@@ -163,22 +163,22 @@ class Notes(db.Model):
     visibility = db.Column(db.String(50), default="private")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # Database connection
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Notes, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner_and_book(cls, owner_id: int, book_id: int):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner_and_book(cls, owner_id: int, book_id: int):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id, book_id=book_id).all()
 
 
-class NotesSchema(ma.SQLAlchemyAutoSchema):
+class NotesSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for notes
     class Meta:
         model = Notes
         fields = (
@@ -188,7 +188,7 @@ class NotesSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-class BooksSchema(ma.SQLAlchemyAutoSchema):
+class BooksSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for books
     num_notes = ma_fields.Method("get_notes_count")
 
     class Meta:
@@ -200,11 +200,11 @@ class BooksSchema(ma.SQLAlchemyAutoSchema):
         )
         load_instance = True
 
-    def get_notes_count(self, obj):
+    def get_notes_count(self, obj):  # Getter method for notes_count
         return len(obj.notes) if obj.notes else 0
 
 
-class BooksStatusSchema(ma.SQLAlchemyAutoSchema):
+class BooksStatusSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for booksstatus
     class Meta:
         model = Books
         fields = (
@@ -213,7 +213,7 @@ class BooksStatusSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# -------------------- TASKS --------------------
+  # -------------------- TASKS --------------------
 class Tasks(db.Model):
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
@@ -226,22 +226,22 @@ class Tasks(db.Model):
     task_metadata = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # Database connection
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Tasks, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner(cls, owner_id: int):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner(cls, owner_id: int):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id).all()
 
 
-class TasksSchema(ma.SQLAlchemyAutoSchema):
+class TasksSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for tasks
     class Meta:
         model = Tasks
         fields = (
@@ -251,7 +251,7 @@ class TasksSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# -------------------- FILES --------------------
+  # -------------------- FILES --------------------
 class Files(db.Model):
     __tablename__ = 'files'
     id = db.Column(db.Integer, primary_key=True)
@@ -263,19 +263,19 @@ class Files(db.Model):
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(Files, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner(cls, owner_id: int):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner(cls, owner_id: int):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id).all()
 
 
-class FilesSchema(ma.SQLAlchemyAutoSchema):
+class FilesSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for files
     class Meta:
         model = Files
         fields = (
@@ -285,12 +285,12 @@ class FilesSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
 
 
-# -------------------- USER SETTINGS --------------------
+  # -------------------- USER SETTINGS --------------------
 class UserSettings(db.Model):
     __tablename__ = 'user_settings'
     id = db.Column(db.Integer, primary_key=True)
     owner_id = db.Column(
-        db.Integer, db.ForeignKey("users.id"), nullable=False, unique=True
+        db.Integer, db.ForeignKey("users.id"), nullable=False, unique=True  # Database connection
     )
     theme = db.Column(db.String(50), default="light")
     language = db.Column(db.String(10), default="en")
@@ -303,22 +303,22 @@ class UserSettings(db.Model):
     mastodon_access_token = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow  # Database connection
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs):  # Special method: __init__
         super(UserSettings, self).__init__(**kwargs)
 
-    def save_to_db(self):
+    def save_to_db(self):  # Save this instance to the database
         db.session.add(self)
         db.session.commit()
 
-    @classmethod
-    def find_by_owner(cls, owner_id: int):
+    @classmethod  # Decorator: classmethod
+    def find_by_owner(cls, owner_id: int):  # Database query method to find records
         return cls.query.filter_by(owner_id=owner_id).first()
 
 
-class UserSettingsSchema(ma.SQLAlchemyAutoSchema):
+class UserSettingsSchema(ma.SQLAlchemyAutoSchema):  # JSON serialization schema for usersettings
     class Meta:
         model = UserSettings
         fields = (

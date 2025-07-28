@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Modal, ModalBody, ModalHeader } from "flowbite-react";
-import { RiAddLine, RiSearch2Line } from "react-icons/ri";
+import { useState } from 'react';  // React library import
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";  // React library import
+import { RiAddLine, RiSearch2Line } from "react-icons/ri";  // React library import
 import SearchBar from './SearchBar';
 
 function QuickAddButton() {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);  // React state hook for component state management
 
-    return (
+    return (  // JSX return statement
         <>
             {/* Floating Action Button */}
             <button
-                onClick={() => setIsOpen(true)}
+                onClick={() => setIsOpen(true)}  // Event handler assignment
                 className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-105"
                 aria-label="Quick add book"
                 title="Add a new book to your library"
@@ -56,4 +56,4 @@ function QuickAddButton() {
     );
 }
 
-export default QuickAddButton;
+export default QuickAddButton;  // Export for use in other modules

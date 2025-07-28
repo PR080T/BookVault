@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer } from "react";  // React library import
 import { ToastStateContext, ToastDispatchContext } from "./contexts.js";
 
 function ToastReducer(state, action) {
@@ -22,12 +22,12 @@ function ToastReducer(state, action) {
     }
 }
 
-export function ToastProvider({ children }) {
+export function ToastProvider({ children }) {  // Export for use in other modules
     const [state, dispatch] = useReducer(ToastReducer, {
         toasts: [],
     });
 
-    return (
+    return (  // JSX return statement
         <ToastStateContext.Provider value={state}>
             <ToastDispatchContext.Provider value={dispatch}>{children}</ToastDispatchContext.Provider>
         </ToastStateContext.Provider>

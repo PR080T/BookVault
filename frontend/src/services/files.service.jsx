@@ -15,7 +15,7 @@ const upload = (formData) => {
 };
 
 
-export default {
+export default {  // Export for use in other modules
     get,
     getAll,
     upload,

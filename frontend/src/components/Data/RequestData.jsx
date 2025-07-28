@@ -1,6 +1,6 @@
-import { Card, Button, Label, Select} from 'flowbite-react'
-import {useState } from 'react'
-import TasksService from '../../services/tasks.service'
+import { Card, Button, Label, Select} from 'flowbite-react'  // React library import
+import {useState } from 'react'  // React library import
+import TasksService from '../../services/tasks.service'  // Service layer import for API communication
 import useToast from '../../toast/useToast';
 
 const customThemeSelect = {
@@ -22,7 +22,7 @@ const customThemeSelect = {
 }
 
 function RequestData(props) {
-    const [dataFormat, setDataFormat] = useState("csv")
+    const [dataFormat, setDataFormat] = useState("csv")  // React state hook for component state management
     const toast = useToast(4000);
 
     const requestData = () => {
@@ -51,7 +51,7 @@ function RequestData(props) {
         )
     }
 
-    return (
+    return (  // JSX return statement
         <Card>
             <div className="flex flex-col gap-4 justify-center">
                 <div className="format lg:format-lg dark:format-invert">
@@ -62,16 +62,16 @@ function RequestData(props) {
                     <div className="mb-2 block">
                         <Label htmlFor="data-format">Choose data format</Label>
                     </div>
-                        <Select theme={customThemeSelect} className='bg-none' id="data-format" required value={dataFormat} onChange={(e) => setDataFormat(e.target.value)}>
+                        <Select theme={customThemeSelect} className='bg-none' id="data-format" required value={dataFormat} onChange={(e) => setDataFormat(e.target.value)}>  // Event handler assignment
                         <option value="csv">CSV</option>
                         <option value="json">JSON</option>
                         <option value="html">HTML</option>
                     </Select>
                 </div>
-                <Button onClick={() => requestData()}>Request data</Button>
+                <Button onClick={() => requestData()}>Request data</Button>  // Event handler assignment
             </div>
         </Card>
     )
 }
 
-export default RequestData
+export default RequestData  // Export for use in other modules

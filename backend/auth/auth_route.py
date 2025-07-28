@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import (create_access_token, create_refresh_token,
+from flask import Blueprint, request, jsonify  # Flask web framework components
+from flask_jwt_extended import (create_access_token, create_refresh_token,  # Flask web framework components
                                 jwt_required, get_jwt_identity, get_jwt)
 from auth.models import RevokedTokenModel
 from models import User, UserSchema, Verification
@@ -7,21 +7,21 @@ from db import db
 from typing import Dict, Any, Union
 import random
 import string
-from datetime import datetime, timedelta
-import os
+from datetime import datetime, timedelta  # Date and time handling
+import os  # Operating system interface
 from auth.decorators import disable_route
 from rate_limiter import rate_limit
-import logging
+import logging  # Application logging
 import re
 
-# Configure logging
+  # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 auth_endpoint = Blueprint('auth', __name__)
 
 
-def str_to_bool(val):
+def str_to_bool(val):  # Function: str_to_bool
     """Convert string/boolean value to boolean"""
     if isinstance(val, bool):
         return val
@@ -34,7 +34,7 @@ def validate_email(email):
     return re.match(pattern, email) is not None
 
 
-def validate_password_strength(password):
+def validate_password_strength(password):  # Function: validate_password_strength
     """
     Validate password strength and return error message if invalid
     Returns None if password is valid
@@ -42,18 +42,18 @@ def validate_password_strength(password):
     from security import validate_password_complexity
     
     result = validate_password_complexity(password)
-    if not result["valid"]:
+    if not result["valid"]:  # Conditional statement
         return result["errors"][0]  # Return first error
     
     return None
 
 
 @auth_endpoint.route("/v1/register", methods=["POST"])
-@disable_route(not str_to_bool(
+@disable_route(not str_to_bool(  # API endpoint route definition
     os.environ.get("AUTH_ALLOW_REGISTRATION", True)
 ))
 @rate_limit(max_requests=3, window_minutes=5)
-def register():
+def register():  # Function: register
     """
     Register a new user account
     
@@ -64,9 +64,9 @@ def register():
         "name": "User Name"
     }
     """
-    try:
-        # Validate request payload
-        if not request.json:
+    try:  # Exception handling block
+  # Validate request payload
+        if not request.json:  # Conditional statement
             return jsonify({'message': 'Request must contain JSON data'}), 400
         
         required_fields = ["email", "password", "name"]
@@ -74,51 +74,51 @@ def register():
             field for field in required_fields if field not in request.json
         ]
         
-        if missing_fields:
+        if missing_fields:  # Conditional statement
             return jsonify({
                 'message': (
                     f'Missing required fields: {", ".join(missing_fields)}'
                 )
             }), 422
 
-        # Extract and validate email
+  # Extract and validate email
         email = request.json["email"].strip().lower()
-        if not email:
+        if not email:  # Conditional statement
             return jsonify({'message': 'Email cannot be empty'}), 422
         
-        if not validate_email(email):
+        if not validate_email(email):  # Conditional statement
             return jsonify({'message': 'Invalid email format'}), 422
 
-        # Validate password strength
+  # Validate password strength
         password = request.json["password"]
         password_error = validate_password_strength(password)
-        if password_error:
+        if password_error:  # Conditional statement
             return jsonify({'message': password_error}), 422
 
-        # Validate name
+  # Validate name
         name = request.json["name"].strip()
-        if not name:
+        if not name:  # Conditional statement
             return jsonify({'message': 'Name cannot be empty'}), 422
         
-        if len(name) > 255:
+        if len(name) > 255:  # Conditional statement
             return jsonify({
                 'message': 'Name must be less than 255 characters'
             }), 422
 
-        # Check if user already exists
-        if User.find_by_email(email):
+  # Check if user already exists
+        if User.find_by_email(email):  # Conditional statement
             return jsonify({
                 'message': f'Email {email} is already in use'
             }), 409
 
-        # Create new user
+  # Create new user
         new_user = User(
-            email=email, 
-            password=User.generate_hash(password), 
+            email=email,
+            password=User.generate_hash(password),
             name=name
         )
 
-        # Generate verification code
+  # Generate verification code
         code = "".join(random.choices(
             string.ascii_uppercase + string.digits, k=8
         ))
@@ -126,26 +126,26 @@ def register():
         new_user.save_to_db()
         user_obj = User.find_by_email(email)
         
-        if not user_obj:
+        if not user_obj:  # Conditional statement
             raise Exception("Failed to retrieve created user")
 
-        # Create verification record
+  # Create verification record
         require_verification = str_to_bool(
             os.environ.get("AUTH_REQUIRE_VERIFICATION", "True")
         )
-        if require_verification:
+        if require_verification:  # Conditional statement
             new_verification = Verification(
-                user_id=user_obj.id, 
-                code=code, 
+                user_id=user_obj.id,
+                code=code,
                 code_valid_until=(
                     datetime.now() + timedelta(days=1)
                 )
             )
-        else:
+        else:  # Default case
             new_verification = Verification(
-                user_id=user_obj.id, 
-                status="verified", 
-                code=None, 
+                user_id=user_obj.id,
+                status="verified",
+                code=None,
                 code_valid_until=None
             )
         
@@ -155,10 +155,10 @@ def register():
             'message': f'Account with email {email} was created successfully'
         }
         
-        # Include verification code in response only if verification is
-        # required
-        # and we're in development mode
-        if (require_verification and 
+  # Include verification code in response only if verification is
+  # required
+  # and we're in development mode
+        if (require_verification and  # Conditional statement
                 os.environ.get("FLASK_ENV") == "development"):
             response_data['verification_code'] = code
             response_data['note'] = (
@@ -167,9 +167,9 @@ def register():
 
         return jsonify(response_data), 201
 
-    except Exception as error:
+    except Exception as error:  # Exception handler
         logger.error(f"Registration error: {error}")
-        # Rollback any partial database changes
+  # Rollback any partial database changes
         db.session.rollback()
         return jsonify({
             'message': 'Something went wrong during registration'
@@ -177,7 +177,7 @@ def register():
 
 
 @auth_endpoint.route("/v1/verify", methods=["POST"])
-def verify():
+def verify():  # Function: verify
     """
     Verify user account with verification code
     
@@ -187,12 +187,12 @@ def verify():
         "code": "ABC12345"
     }
     """
-    try:
-        # Validate request payload
-        if not request.json:
+    try:  # Exception handling block
+  # Validate request payload
+        if not request.json:  # Conditional statement
             return jsonify({'message': 'Request must contain JSON data'}), 400
         
-        if "email" not in request.json or "code" not in request.json:
+        if "email" not in request.json or "code" not in request.json:  # Conditional statement
             return jsonify({
                 'message': 'Missing required fields: email, code'
             }), 422
@@ -200,37 +200,37 @@ def verify():
         email = request.json["email"].strip().lower()
         code = request.json["code"].strip().upper()
 
-        if not email or not code:
+        if not email or not code:  # Conditional statement
             return jsonify({'message': 'Email and code cannot be empty'}), 422
 
-        # Find user by email
+  # Find user by email
         current_user = User.find_by_email(email)
-        if not current_user:
+        if not current_user:  # Conditional statement
             return jsonify({'message': 'User not found'}), 404
 
-        # Find verification record
+  # Find verification record
         verification = Verification.query.filter(
             Verification.user_id == current_user.id
         ).first()
-        if not verification:
+        if not verification:  # Conditional statement
             return jsonify({
                 'message': 'Verification record not found'
             }), 404
 
-        # Check if already verified
-        if verification.status == "verified":
+  # Check if already verified
+        if verification.status == "verified":  # Conditional statement
             return jsonify({'message': 'Account is already verified'}), 200
 
-        # Check if code has expired
-        if (verification.code_valid_until and 
+  # Check if code has expired
+        if (verification.code_valid_until and  # Conditional statement
                 datetime.now() > verification.code_valid_until):
             return jsonify({'message': 'Verification code has expired'}), 400
 
-        # Verify the code
-        if not verification.code or verification.code != code:
+  # Verify the code
+        if not verification.code or verification.code != code:  # Conditional statement
             return jsonify({'message': 'Invalid verification code'}), 400
 
-        # Update verification status
+  # Update verification status
         verification.status = "verified"
         verification.code = None
         verification.code_valid_until = None
@@ -238,7 +238,7 @@ def verify():
 
         return jsonify({'message': 'Account verified successfully'}), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Verification error: {e}")
         db.session.rollback()
         return jsonify({
@@ -248,7 +248,7 @@ def verify():
 
 @auth_endpoint.route("/v1/login", methods=["POST"])
 @rate_limit(max_requests=5, window_minutes=1)
-def login():
+def login():  # Function: login
     """
     Authenticate user and return access tokens
     
@@ -258,12 +258,12 @@ def login():
         "password": "SecurePassword123!"
     }
     """
-    try:
-        # Validate request payload
-        if not request.json:
+    try:  # Exception handling block
+  # Validate request payload
+        if not request.json:  # Conditional statement
             return jsonify({'message': 'Request must contain JSON data'}), 400
         
-        if "email" not in request.json or "password" not in request.json:
+        if "email" not in request.json or "password" not in request.json:  # Conditional statement
             return jsonify({
                 'message': 'Missing required fields: email, password'
             }), 422
@@ -271,18 +271,18 @@ def login():
         email = request.json["email"].strip().lower()
         password = request.json["password"]
 
-        if not email or not password:
+        if not email or not password:  # Conditional statement
             return jsonify({
                 'message': 'Email and password cannot be empty'
             }), 422
 
-        # Find user by email
+  # Find user by email
         current_user = User.find_by_email(email)
-        if not current_user:
+        if not current_user:  # Conditional statement
             return jsonify({'message': 'Invalid email or password'}), 401
 
-        # Check account status first
-        if current_user.status == "inactive":
+  # Check account status first
+        if current_user.status == "inactive":  # Conditional statement
             return jsonify({
                 'message': (
                     'Account has been deactivated. Please contact '
@@ -290,19 +290,19 @@ def login():
                 )
             }), 403
 
-        # Verify password
-        if not User.verify_hash(password, current_user.password):
+  # Verify password
+        if not User.verify_hash(password, current_user.password):  # Conditional statement
             return jsonify({'message': 'Invalid email or password'}), 401
 
-        # Check if account is active
-        if current_user.status != "active":
+  # Check if account is active
+        if current_user.status != "active":  # Conditional statement
             return jsonify({'message': 'Account is not active'}), 403
 
-        # Check verification status if verification exists
+  # Check verification status if verification exists
         verification = None
-        if hasattr(current_user, 'verification') and current_user.verification:
+        if hasattr(current_user, 'verification') and current_user.verification:  # Conditional statement
             verification = current_user.verification
-            if verification.status != "verified":
+            if verification.status != "verified":  # Conditional statement
                 return jsonify({
                     'message': (
                         'Account has not been verified. Please check your '
@@ -310,7 +310,7 @@ def login():
                     )
                 }), 403
 
-        # Generate tokens
+  # Generate tokens
         access_token = create_access_token(
             identity=email,
             additional_claims={
@@ -319,16 +319,16 @@ def login():
         )
         refresh_token = create_refresh_token(identity=email)
 
-        # Prepare response
+  # Prepare response
         user_schema = UserSchema()
         json_output: Union[Dict[str, Any], Any] = user_schema.dump(
             current_user
         )
         
-        # Ensure json_output is a dictionary (not a list)
-        if isinstance(json_output, list):
+  # Ensure json_output is a dictionary (not a list)
+        if isinstance(json_output, list):  # Conditional statement
             json_output = json_output[0] if json_output else {}
-        elif not isinstance(json_output, dict):
+        elif not isinstance(json_output, dict):  # Alternative condition
             json_output = {}
         
         json_output.update({
@@ -339,31 +339,31 @@ def login():
         
         return jsonify(json_output), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Login error: {e}")
         return jsonify({'message': 'Something went wrong during login'}), 500
 
 
 @auth_endpoint.route('/v1/token/refresh', methods=['POST'])
-@jwt_required(refresh=True)
-def token_refresh():
+@jwt_required(refresh=True)  # JWT token manager
+def token_refresh():  # Function: token_refresh
     """
     Refresh access token using refresh token
     
     Requires valid refresh token in Authorization header
     """
-    try:
+    try:  # Exception handling block
         current_user_email = get_jwt_identity()
         current_user = User.find_by_email(current_user_email)
 
-        if not current_user:
+        if not current_user:  # Conditional statement
             return jsonify({'message': 'User not found'}), 404
 
-        # Check if user is still active
-        if current_user.status != "active":
+  # Check if user is still active
+        if current_user.status != "active":  # Conditional statement
             return jsonify({'message': 'Account is no longer active'}), 403
 
-        # Generate new access token
+  # Generate new access token
         access_token = create_access_token(
             identity=current_user_email,
             additional_claims={
@@ -376,7 +376,7 @@ def token_refresh():
             'message': 'Token refreshed successfully'
         }), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Token refresh error: {e}")
         return jsonify({
             'message': 'Something went wrong during token refresh'
@@ -384,65 +384,65 @@ def token_refresh():
 
 
 @auth_endpoint.route('/v1/token/logout/access', methods=['POST'])
-@jwt_required()
-def user_logout_access():
+@jwt_required()  # Requires valid JWT token for access
+def user_logout_access():  # Function: user_logout_access
     """
     Revoke access token (logout from current session)
     
     Requires valid access token in Authorization header
     """
-    try:
+    try:  # Exception handling block
         jti = get_jwt()["jti"]
         revoked_token = RevokedTokenModel(jti=jti)
         revoked_token.add()
         return jsonify({
             'message': 'Access token has been revoked successfully'
         }), 200
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Failed to revoke access token: {e}")
         db.session.rollback()
         return jsonify({'message': 'Something went wrong during logout'}), 500
 
 
 @auth_endpoint.route('/v1/token/logout/refresh', methods=['POST'])
-@jwt_required(refresh=True)
-def user_logout_refresh():
+@jwt_required(refresh=True)  # JWT token manager
+def user_logout_refresh():  # Function: user_logout_refresh
     """
     Revoke refresh token (logout from all sessions)
     
     Requires valid refresh token in Authorization header
     """
-    try:
+    try:  # Exception handling block
         jti = get_jwt()["jti"]
         revoked_token = RevokedTokenModel(jti=jti)
         revoked_token.add()
         return jsonify({
             'message': 'Refresh token has been revoked successfully'
         }), 200
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Failed to revoke refresh token: {e}")
         db.session.rollback()
         return jsonify({'message': 'Something went wrong during logout'}), 500
 
 
 @auth_endpoint.route("/v1/user/status", methods=["GET"])
-@jwt_required()
-def get_user_status():
+@jwt_required()  # Requires valid JWT token for access
+def get_user_status():  # Getter method for user_status
     """
     Get current user status and basic info
     
     Requires valid access token in Authorization header
     """
-    try:
+    try:  # Exception handling block
         current_user_email = get_jwt_identity()
         current_user = User.find_by_email(current_user_email)
         
-        if not current_user:
+        if not current_user:  # Conditional statement
             return jsonify({'message': 'User not found'}), 404
         
-        # Get verification status
+  # Get verification status
         verification_status = "unknown"
-        if hasattr(current_user, 'verification') and current_user.verification:
+        if hasattr(current_user, 'verification') and current_user.verification:  # Conditional statement
             verification_status = current_user.verification.status
         
         return jsonify({
@@ -454,6 +454,6 @@ def get_user_status():
             'verification_status': verification_status
         }), 200
         
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error(f"Get user status error: {e}")
         return jsonify({'message': 'Something went wrong'}), 500

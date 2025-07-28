@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+  # !/usr/bin/env python3
 """
 Database Initialization Script for BookVault
 
@@ -13,34 +13,34 @@ Environment Variables Required:
     AUTH_SECRET_KEY - Secret key for JWT tokens
 """
 
-import os
+import os  # Operating system interface
 import sys
 from pathlib import Path
 
-# Add the backend directory to Python path
+  # Add the backend directory to Python path
 backend_dir = Path(__file__).parent.resolve()
 sys.path.insert(0, str(backend_dir))
 
-# Import after path setup (required for module resolution)
+  # Import after path setup (required for module resolution)
 from app import app, db  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
-# Import models to register them with SQLAlchemy (required for db.create_all())
+  # Import models to register them with SQLAlchemy (required for db.create_all())
 from models import *  # noqa: E402, F401, F403
 from auth.models import *  # noqa: E402, F401, F403
 
 
-def init_database():
+def init_database():  # Function: init_database
     """Initialize the database with all tables"""
     try:
         with app.app_context():
             print("\U0001F504 Initializing PostgreSQL database...")
 
-            # Create all tables
+  # Create all tables
             db.create_all()
             print("✅ Database tables created successfully")
 
-            # Test database connection
+  # Test database connection
             result = db.session.execute(text("SELECT version()"))
             version = result.fetchone()[0]
             print(f"✅ PostgreSQL connection successful: {version}")
@@ -57,28 +57,28 @@ def check_environment():
     required_vars = ['DATABASE_URL', 'AUTH_SECRET_KEY']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
 
-    if missing_vars:
+    if missing_vars:  # Conditional statement
         print(f"❌ Missing required environment variables: "
               f"{', '.join(missing_vars)}")
         print("Please set these variables before running the script.")
         sys.exit(1)
 
-    db_url = os.getenv('DATABASE_URL', '')
-    if not db_url.startswith('postgresql://') and \
+    db_url = os.getenv('DATABASE_URL', '')  # Database connection
+    if not db_url.startswith('postgresql://') and \  # Conditional statement
        not db_url.startswith('postgres://'):
         prefix = db_url.split('://')[0] if '://' in db_url else 'unknown'
         print("⚠️  Warning: DATABASE_URL doesn't appear to be a "
               "PostgreSQL connection string")
         print(f"Current DATABASE_URL starts with: {prefix}")
 
-    if db_url.startswith('postgres://'):
+    if db_url.startswith('postgres://'):  # Conditional statement
         fixed_url = db_url.replace('postgres://', 'postgresql://', 1)
         print("⚠️  Converting 'postgres://' to 'postgresql://' for "
               "SQLAlchemy compatibility")
         os.environ['DATABASE_URL'] = fixed_url
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # Conditional statement
     print("\U0001F680 BookVault Database Initialization")
     print("=" * 40)
     check_environment()

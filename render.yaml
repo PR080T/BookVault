@@ -34,7 +34,7 @@ services:
       - key: FRONTEND_URL
         value: https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app
       - key: ALLOWED_ORIGINS
-        value: https://book-vault-pi.vercel.app,https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app
+        value: "https://book-vault-pi.vercel.app,https://book-vault-kvbl49pl8-prasanna-v-bhats-projects.vercel.app,https://*.vercel.app,https://book-vault-git-main-prasanna-v-bhats-projects.vercel.app"
 
 # Database
 databases:

@@ -1,36 +1,36 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import axios from "axios";
+import { useState, useEffect, useMemo, useCallback } from "react";  // React library import
+import axios from "axios";  // HTTP client for API calls
 import { debounce } from 'lodash';
 
-import { Link, useNavigate } from "react-router-dom";
-import Skeleton from 'react-loading-skeleton'
-import 'react-loading-skeleton/dist/skeleton.css'
-import { RiSearch2Line } from "react-icons/ri";
+import { Link, useNavigate } from "react-router-dom";  // React library import
+import Skeleton from 'react-loading-skeleton'  // React library import
+import 'react-loading-skeleton/dist/skeleton.css'  // React library import
+import { RiSearch2Line } from "react-icons/ri";  // React library import
 import ESCIcon from "./ESCIcon";
-import { Img } from 'react-image'
-import { RiErrorWarningLine } from "react-icons/ri";
-import { HR } from "flowbite-react";
-import { useThemeMode } from 'flowbite-react';
+import { Img } from 'react-image'  // React library import
+import { RiErrorWarningLine } from "react-icons/ri";  // React library import
+import { HR } from "flowbite-react";  // React library import
+import { useThemeMode } from 'flowbite-react';  // React library import
 
 function SearchBar(props) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [suggestions, setSuggestions] = useState([{id: 0, name: ""}]);
-    const [noSuggestionsFound, setNoSuggestionsFound] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [showList, setShowList] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');  // React state hook for component state management
+    const [suggestions, setSuggestions] = useState([{id: 0, name: ""}]);  // React state hook for component state management
+    const [noSuggestionsFound, setNoSuggestionsFound] = useState(false);  // React state hook for component state management
+    const [loading, setLoading] = useState(false);  // React state hook for component state management
+    const [showList, setShowList] = useState(false);  // React state hook for component state management
     const loadingPlaceholder = [0,1,2,3,4,5]
-    const [onError, setOnError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState();
-    let navigate = useNavigate();
+    const [onError, setOnError] = useState(false);  // React state hook for component state management
+    const [errorMessage, setErrorMessage] = useState();  // React state hook for component state management
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
     const theme = useThemeMode();
 
     const fetchSuggestions = useCallback((searchTerm) => {
       if (searchTerm && searchTerm.trim().length >= 2) {
-        setLoading(true);
-        setOnError(false);
-        setErrorMessage();
+        setLoading(true);  // State update
+        setOnError(false);  // State update
+        setErrorMessage();  // State update
         
-        axios.get(`https://openlibrary.org/search.json?q=${encodeURIComponent(searchTerm.trim())}&limit=10&offset=0&fields=title,isbn,author_name,key,cover_i,first_publish_year&lang=en`)
+        axios.get(`https:  // openlibrary.org/search.json?q=${encodeURIComponent(searchTerm.trim())}&limit=10&offset=0&fields=title,isbn,author_name,key,cover_i,first_publish_year&lang=en`)
         .then(response => {
             let newArray = []
             for (let i = 0; i < response.data.docs.length; i++) {
@@ -46,39 +46,39 @@ function SearchBar(props) {
                     })
                 }
             }
-            setSuggestions(newArray);
-            setLoading(false);
-            setShowList(true);
-            setNoSuggestionsFound(newArray.length === 0);
+            setSuggestions(newArray);  // State update
+            setLoading(false);  // State update
+            setShowList(true);  // State update
+            setNoSuggestionsFound(newArray.length === 0);  // State update
         })
         .catch(error => {
-            setLoading(false);
-            setOnError(true);
-            setErrorMessage(error.response?.status || error.code || 'Network Error');
+            setLoading(false);  // State update
+            setOnError(true);  // State update
+            setErrorMessage(error.response?.status || error.code || 'Network Error');  // State update
             console.error('Error fetching suggestions:', error);
         });
       } else if (searchTerm.trim().length < 2) {
-        setSuggestions([]);
-        setLoading(false);
-        setShowList(false);
-        setNoSuggestionsFound(false);
+        setSuggestions([]);  // State update
+        setLoading(false);  // State update
+        setShowList(false);  // State update
+        setNoSuggestionsFound(false);  // State update
       }
     }, []);
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         if (searchTerm.trim() === '') {
-            setSuggestions([]);
-            setLoading(false);
-            setShowList(false);
+            setSuggestions([]);  // State update
+            setLoading(false);  // State update
+            setShowList(false);  // State update
         } 
     }, [searchTerm]);
 
     const changeHandler = useCallback((e) => {
         if (e.target.value) {
-            setLoading(true);
-            setShowList(true);
-            setOnError(false);
-            setErrorMessage();
+            setLoading(true);  // State update
+            setShowList(true);  // State update
+            setOnError(false);  // State update
+            setErrorMessage();  // State update
             fetchSuggestions(e.target.value)
         }
     }, [fetchSuggestions]);
@@ -88,14 +88,14 @@ function SearchBar(props) {
         [changeHandler]
     );
 
-    // Cleanup debounced function on unmount
-    useEffect(() => {
-        return () => {
+  // Cleanup debounced function on unmount
+    useEffect(() => {  // React effect hook for side effects
+        return () => {  // JSX return statement
             debouncedChangeHandler.cancel();
         };
     }, [debouncedChangeHandler]);
 
-    return (
+    return (  // JSX return statement
         <div>
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -105,7 +105,7 @@ function SearchBar(props) {
                     id="search"
                     type="text"
                     placeholder="Search for a book by title, author, or ISBN"
-                    onChange={(e) => (debouncedChangeHandler(e), setSearchTerm(e.target.value))}
+                    onChange={(e) => (debouncedChangeHandler(e), setSearchTerm(e.target.value))}  // Event handler assignment
                     value={searchTerm}
                     aria-label="Search for books"
                     aria-describedby="search-results"
@@ -126,7 +126,7 @@ function SearchBar(props) {
             >
                 {loading ? (
                      loadingPlaceholder.map(function(item, index) {
-                        return (
+                        return (  // JSX return statement
                             <div key={index} className="p-4">
                                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
                                     <div className="lg:col-span-1 flex justify-center lg:justify-start">
@@ -146,18 +146,18 @@ function SearchBar(props) {
                     
                 ): (
                     suggestions?.map(function(data) {
-                        return (
+                        return (  // JSX return statement
                             <Link 
                                 key={data.id} 
                                 to={"/books/" + data.isbn} 
-                                onClick={() => (props.onNavigate(), navigate("/books/" + data.isbn))}
+                                onClick={() => (props.onNavigate(), navigate("/books/" + data.isbn))}  // Event handler assignment
                                 className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 rounded-lg"
                                 role="option"
                                 aria-label={`${data.name} by ${data.author}, published ${data.year || 'unknown year'}`}
                             >
                                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
                                     <div className="lg:col-span-1 flex justify-center lg:justify-start">
-                                        <Img className="object-contain h-32 w-20 rounded-md shadow-sm" src={"https://covers.openlibrary.org/b/isbn/" + data.isbn + "-M.jpg?default=false"} 
+                                        <Img className="object-contain h-32 w-20 rounded-md shadow-sm" src={"https:  // covers.openlibrary.org/b/isbn/" + data.isbn + "-M.jpg?default=false"}
                                             loader={<Skeleton count={1} width={80} height={128} borderRadius={6} inline={true}/>}
                                             unloader={theme.mode == "dark" && <img className="object-contain h-32 w-20 rounded-md" src="/fallback-cover-light.svg"/> || theme.mode == "light" && <img className="object-contain h-32 w-20 rounded-md" src="/fallback-cover.svg"/>}
                                         />
@@ -192,14 +192,14 @@ function SearchBar(props) {
                     <div className="format lg:format-lg dark:format-invert">
                         <h2>Something went wrong</h2>
                         <p>Try again later.</p>
-                        <p className="text-xs">{errorMessage}. <a href={"https://github.com/Mozzo1000/booklogr/wiki/Error-messages#" + String(errorMessage).toLowerCase()}>Learn more</a></p>
+                        <p className="text-xs">{errorMessage}. <a href={"https:  // github.com/Mozzo1000/booklogr/wiki/Error-messages#" + String(errorMessage).toLowerCase()}>Learn more</a></p>
                         
                     </div>
                 </div>
                 }
             </div>
             {props.showAttribution &&
-                <p className="format dark:format-invert pt-2 ml-2 text-xs text-gray-500 font">Search powered by <a href="https://openlibrary.org" target="_blank">OpenLibrary</a></p>
+                <p className="format dark:format-invert pt-2 ml-2 text-xs text-gray-500 font">Search powered by <a href="https:  // openlibrary.org" target="_blank">OpenLibrary</a></p>
             }
         </div>
     )
@@ -210,4 +210,4 @@ SearchBar.defaultProps = {
     hideESCIcon: true,
     showAttribution: true
   }
-export default SearchBar
+export default SearchBar  // Export for use in other modules

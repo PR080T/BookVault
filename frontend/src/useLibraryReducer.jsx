@@ -1,8 +1,8 @@
-export const initialState = {
+export const initialState = {  // Export for use in other modules
     books: null,
   };
   
-export const actionTypes = {
+export const actionTypes = {  // Export for use in other modules
 BOOKS: "BOOKS",
 };
   
@@ -19,4 +19,4 @@ const reducer = (state, action) => {
     }
 };
   
-export default reducer;
+export default reducer;  // Export for use in other modules

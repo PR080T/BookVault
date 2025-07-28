@@ -12,7 +12,7 @@ import { apiWithRetry } from "./api";
  */
 const add = async (data) => {
     try {
-        // Validate required fields
+  // Validate required fields
         if (!data.title || !data.title.trim()) {
             throw new Error('Book title is required');
         }
@@ -21,7 +21,7 @@ const add = async (data) => {
             throw new Error('Book ISBN is required');
         }
         
-        // Sanitize data
+  // Sanitize data
         const sanitizedData = {
             ...data,
             title: data.title.trim(),
@@ -34,7 +34,7 @@ const add = async (data) => {
     } catch (error) {
         console.error('Error adding book:', error);
         
-        // Handle specific error cases
+  // Handle specific error cases
         if (error.response?.status === 409) {
             throw new Error(error.response.data?.message || 'Book already exists in your library');
         }
@@ -64,7 +64,7 @@ const get = async (status, page) => {
     } catch (error) {
         console.error('Error fetching books:', error);
         
-        // Handle specific error cases
+  // Handle specific error cases
         if (error.response?.status === 400) {
             throw new Error(error.response.data?.message || 'Invalid request parameters');
         }
@@ -167,7 +167,7 @@ const getStats = async () => {
     }
 }
 
-export default {
+export default {  // Export for use in other modules
     add,
     get,
     edit,

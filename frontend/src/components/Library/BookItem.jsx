@@ -1,21 +1,21 @@
-import { memo } from 'react'
-import { Progress, Badge } from "flowbite-react";
-import { Link } from 'react-router-dom';
+import { memo } from 'react'  // React library import
+import { Progress, Badge } from "flowbite-react";  // React library import
+import { Link } from 'react-router-dom';  // React library import
 import UpdateReadingStatusButton from '../UpdateReadingStatusButton';
 import ActionsBookLibraryButton from '../ActionsBookLibraryButton';
 import BookRating from './BookRating';
-import Skeleton from 'react-loading-skeleton'
+import Skeleton from 'react-loading-skeleton'  // React library import
 import NotesIcon from '../NotesIcon';
-import { Img } from 'react-image'
-import { useThemeMode } from 'flowbite-react';
+import { Img } from 'react-image'  // React library import
+import { useThemeMode } from 'flowbite-react';  // React library import
 
 const BookItem = memo(function BookItem(props) {
     const theme = useThemeMode();
     
-    return (
+    return (  // JSX return statement
         <div className="group min-h-full flex flex-col card hover:scale-[1.02] md:flex-row md:max-w-md">
                 <div className="relative overflow-hidden rounded-t-xl md:rounded-none md:rounded-s-xl">
-                    <Img className="object-cover w-full h-96 md:h-auto md:w-24 group-hover:scale-105 transition-transform duration-300" src={"https://covers.openlibrary.org/b/isbn/" + props.isbn + "-L.jpg?default=false"} 
+                    <Img className="object-cover w-full h-96 md:h-auto md:w-24 group-hover:scale-105 transition-transform duration-300" src={"https:  // covers.openlibrary.org/b/isbn/" + props.isbn + "-L.jpg?default=false"}
                         loader={<Skeleton count={1} width={96} height={"100%"} borderRadius={0} inline={true}/>}
                         unloader={theme.mode == "dark" && <img className="object-fit w-full h-96 md:h-auto md:w-24" src="/fallback-cover-light.svg"/> || theme.mode == "light" && <img className="object-fit w-full h-96 md:h-auto md:w-24" src="/fallback-cover.svg"/>}
                     />
@@ -86,4 +86,4 @@ BookItem.defaultProps = {
     allowNoteEditing: true,
 }
 
-export default memo(BookItem)
+export default memo(BookItem)  // Export for use in other modules

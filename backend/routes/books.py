@@ -10,68 +10,68 @@ This module handles all book-related API endpoints including:
 
 All endpoints require JWT authentication and operate on user-specific data.
 """
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt
+from flask import Blueprint, request, jsonify  # Flask web framework components
+from flask_jwt_extended import jwt_required, get_jwt  # Flask web framework components
 from models import (Books, BooksSchema, NotesSchema, Notes, UserSettings,
                     BooksStatusSchema, Profile)
 from db import db
 from routes.tasks import _create_task
 from security import sanitize_input, check_sql_injection, validate_isbn as security_validate_isbn
 import json
-import logging
-from sqlalchemy.exc import IntegrityError
+import logging  # Application logging
+from sqlalchemy.exc import IntegrityError  # Database ORM components
 from decimal import Decimal, InvalidOperation
 import re
 
-# Configure logging
+  # Configure logging
 logger = logging.getLogger(__name__)
 
 books_endpoint = Blueprint('books', __name__)
 
 
-def validate_isbn(isbn):
+def validate_isbn(isbn):  # Function: validate_isbn
     """
     Validate ISBN-10 or ISBN-13 format using security module
     Returns cleaned ISBN if valid, None if invalid
     """
-    if not isbn:
+    if not isbn:  # Conditional statement
         return None
     
-    # Remove any non-digit characters except X for cleaning
+  # Remove any non-digit characters except X for cleaning
     cleaned = re.sub(r'[^0-9X]', '', isbn.upper())
     
-    # Use security module for proper validation
-    if security_validate_isbn(cleaned):
+  # Use security module for proper validation
+    if security_validate_isbn(cleaned):  # Conditional statement
         return cleaned
     
-    # Fallback for simple format validation (for compatibility)
-    if len(cleaned) >= 10:
+  # Fallback for simple format validation (for compatibility)
+    if len(cleaned) >= 10:  # Conditional statement
         return cleaned
     
     return None
 
 
 @books_endpoint.route("/v1/books/<isbn>", methods=["GET"])
-@jwt_required()
-def get_book_reading_status(isbn):
+@jwt_required()  # Requires valid JWT token for access
+def get_book_reading_status(isbn):  # Getter method for book_reading_status
     """
     Check if book (by ISBN) is already in a list.
 
     Returns book status and current reading progress if book exists in
     user's library.
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate ISBN
-        if not isbn or not isbn.strip():
+  # Validate ISBN
+        if not isbn or not isbn.strip():  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "ISBN cannot be empty"
             }), 400
 
         isbn = validate_isbn(isbn.strip())
-        if not isbn:
+        if not isbn:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": ("Invalid ISBN format. Please provide a valid "
@@ -82,16 +82,16 @@ def get_book_reading_status(isbn):
             Books.owner_id == claim_id, Books.isbn == isbn
         ).first()
 
-        if book:
+        if book:  # Conditional statement
             books_status_schema = BooksStatusSchema(many=False)
             return jsonify(books_status_schema.dump(book)), 200
-        else:
+        else:  # Default case
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ISBN {isbn} found in your library"
             }), 404
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error getting book reading status: %s", e)
         return jsonify({
             "error": "Internal server error",
@@ -100,8 +100,8 @@ def get_book_reading_status(isbn):
 
 
 @books_endpoint.route("/v1/books", methods=["GET"])
-@jwt_required()
-def get_books():
+@jwt_required()  # Requires valid JWT token for access
+def get_books():  # Getter method for books
     """
     Get books in user's library with pagination and filtering.
 
@@ -111,47 +111,47 @@ def get_books():
     - limit: Number of books per page (default: 25, max: 100)
     - offset: Page number (default: 1)
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Parse pagination parameters
+  # Parse pagination parameters
         limit = request.args.get('limit', 25, type=int)
         offset = request.args.get('offset', 1, type=int)
 
-        # Validate pagination parameters
-        if limit < 1 or limit > 100:
+  # Validate pagination parameters
+        if limit < 1 or limit > 100:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Limit must be between 1 and 100"
             }), 400
 
-        if offset < 1:
+        if offset < 1:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Page offset must be greater than 0"
             }), 400
 
-        # Parse status filter
+  # Parse status filter
         query_status = request.args.get("status")
         valid_statuses = ["To be read", "Currently reading", "Read"]
 
-        if query_status and query_status not in valid_statuses:
+        if query_status and query_status not in valid_statuses:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": (f"Invalid status. Must be one of: "
                            f"{', '.join(valid_statuses)}")
             }), 400
 
-        # Parse search query
+  # Parse search query
         search_query = request.args.get("search", "").strip()
 
-        # Build query
+  # Build query
         query = Books.query.filter(Books.owner_id == claim_id)
 
-        if query_status:
+        if query_status:  # Conditional statement
             query = query.filter(Books.reading_status == query_status)
         
-        if search_query:
+        if search_query:  # Conditional statement
             search_filter = db.or_(
                 Books.title.ilike(f"%{search_query}%"),
                 Books.author.ilike(f"%{search_query}%"),
@@ -159,14 +159,14 @@ def get_books():
             )
             query = query.filter(search_filter)
 
-        # Execute paginated query
+  # Execute paginated query
         books = query.paginate(
             page=offset,
             per_page=limit,
             error_out=False
         )
 
-        # Serialize response
+  # Serialize response
         books_schema = BooksSchema(many=True)
 
         response_data = {
@@ -184,7 +184,7 @@ def get_books():
 
         return jsonify(response_data), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error getting books: %s", e)
         return jsonify({
             "error": "Internal server error",
@@ -193,8 +193,8 @@ def get_books():
 
 
 @books_endpoint.route("/v1/books", methods=["POST"])
-@jwt_required()
-def add_book():
+@jwt_required()  # Requires valid JWT token for access
+def add_book():  # Function: add_book
     """
         Add book to list
         ---
@@ -239,38 +239,38 @@ def add_book():
             description: Book added to list.
     """
 
-    # Validate request data
-    if not request.json:
+  # Validate request data
+    if not request.json:  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': 'No JSON data provided'
         }), 400
 
     required_fields = ['title', 'isbn']
-    for field in required_fields:
-        if field not in request.json or not request.json[field]:
+    for field in required_fields:  # Loop iteration
+        if field not in request.json or not request.json[field]:  # Conditional statement
             return jsonify({
                 'error': 'Bad request',
                 'message': f'Missing required field: {field}'
             }), 400
 
-    # Validate ISBN format
+  # Validate ISBN format
     isbn = validate_isbn(request.json["isbn"].strip())
-    if not isbn:
+    if not isbn:  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': ('Invalid ISBN format. Please provide a valid '
                        'ISBN-10 or ISBN-13.')
         }), 400
-    # Validate and sanitize title
+  # Validate and sanitize title
     title = sanitize_input(request.json["title"].strip())
-    if not title or len(title) > 500:
+    if not title or len(title) > 500:  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': 'Title must be between 1 and 500 characters'
         }), 400
     
-    if check_sql_injection(title):
+    if check_sql_injection(title):  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': 'Invalid characters in title'
@@ -278,11 +278,11 @@ def add_book():
 
     claim_id = get_jwt()["id"]
 
-    # Check if book already exists for this user
+  # Check if book already exists for this user
     existing_book = Books.query.filter(
         Books.owner_id == claim_id, Books.isbn == isbn
     ).first()
-    if existing_book:
+    if existing_book:  # Conditional statement
         return jsonify({
             'error': 'Conflict',
             'message': 'Book already exists in your library'
@@ -291,46 +291,46 @@ def add_book():
     author = sanitize_input(request.json.get("author", "").strip()) or None
     description = sanitize_input(request.json.get("description", "").strip()) or None
     
-    # Additional validation for author and description
-    if author and check_sql_injection(author):
+  # Additional validation for author and description
+    if author and check_sql_injection(author):  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': 'Invalid characters in author field'
         }), 400
     
-    if description and check_sql_injection(description):
+    if description and check_sql_injection(description):  # Conditional statement
         return jsonify({
             'error': 'Bad request',
             'message': 'Invalid characters in description field'
         }), 400
 
     reading_status = request.json.get("reading_status", "To be read")
-    if reading_status not in ["To be read", "Currently reading", "Read"]:
+    if reading_status not in ["To be read", "Currently reading", "Read"]:  # Conditional statement
         reading_status = "To be read"
 
     current_page = request.json.get("current_page", 0)
     total_pages = request.json.get("total_pages", 0)
-    # Validate page numbers
-    try:
+  # Validate page numbers
+    try:  # Exception handling block
         current_page = int(current_page) if current_page is not None else 0
         total_pages = int(total_pages) if total_pages is not None else 0
-        if current_page < 0 or total_pages < 0:
+        if current_page < 0 or total_pages < 0:  # Conditional statement
             return jsonify({
                 'error': 'Bad request',
                 'message': 'Page numbers cannot be negative'
             }), 400
-        if current_page > total_pages and total_pages > 0:
+        if current_page > total_pages and total_pages > 0:  # Conditional statement
             return jsonify({
                 'error': 'Bad request',
                 'message': 'Current page cannot exceed total pages'
             }), 400
-    except (ValueError, TypeError):
+    except (ValueError, TypeError):  # Exception handler
         return jsonify({
             'error': 'Bad request',
             'message': 'Page numbers must be integers'
         }), 400
 
-    try:
+    try:  # Exception handling block
         new_book = Books(  # type: ignore
             owner_id=claim_id,
             title=title,
@@ -346,12 +346,12 @@ def add_book():
             'message': 'Book added to library successfully.',
             'book_id': new_book.id
         }), 201
-    except IntegrityError as e:
+    except IntegrityError as e:  # Exception handler
         db.session.rollback()
-        # Check if it's a foreign key constraint error
-        if "foreign key constraint" in str(e.orig).lower():
+  # Check if it's a foreign key constraint error
+        if "foreign key constraint" in str(e.orig).lower():  # Conditional statement
             prof = Profile.query.filter_by(owner_id=claim_id).first()
-            if prof is None:
+            if prof is None:  # Conditional statement
                 return jsonify({
                     'error': 'Profile required',
                     'message': ('A profile must be created before adding '
@@ -361,7 +361,7 @@ def add_book():
             'error': 'Database error',
             'message': 'Failed to add book due to database constraint.'
         }), 409
-    except Exception:
+    except Exception:  # Exception handler
         db.session.rollback()
         return jsonify({
             'error': 'Internal server error',
@@ -370,8 +370,8 @@ def add_book():
 
 
 @books_endpoint.route("/v1/books/<id>", methods=["PATCH"])
-@jwt_required()
-def edit_book(id):
+@jwt_required()  # Requires valid JWT token for access
+def edit_book(id):  # Function: edit_book
     """
     Edit book details, progress, status, or rating.
 
@@ -384,72 +384,72 @@ def edit_book(id):
     - author: Book author
     - description: Book description
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate book ID
-        try:
+  # Validate book ID
+        try:  # Exception handling block
             book_id = int(id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Exception handler
             return jsonify({
                 "error": "Bad request",
                 "message": "Invalid book ID"
             }), 400
 
-        # Find the book
+  # Find the book
         book = Books.query.filter(
             Books.owner_id == claim_id, Books.id == book_id
         ).first()
 
-        if not book:
+        if not book:  # Conditional statement
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ID {id} was found"
             }), 404
 
-        # Validate request payload
-        if not request.json:
+  # Validate request payload
+        if not request.json:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Request must contain JSON data"
             }), 400
 
-        # Track if any changes were made
+  # Track if any changes were made
         changes_made = False
 
-        # Handle current_page updates
-        if "current_page" in request.json:
-            try:
+  # Handle current_page updates
+        if "current_page" in request.json:  # Conditional statement
+            try:  # Exception handling block
                 current_page = int(request.json["current_page"])
-                if current_page < 0:
+                if current_page < 0:  # Conditional statement
                     return jsonify({
                         "error": "Unprocessable entity",
                         "message": "Current page cannot be negative"
                     }), 422
-                if book.total_pages > 0 and current_page > book.total_pages:
+                if book.total_pages > 0 and current_page > book.total_pages:  # Conditional statement
                     return jsonify({
                         "error": "Unprocessable entity",
                         "message": "Current page cannot exceed total pages"
                     }), 422
                 book.current_page = current_page
                 changes_made = True
-            except (ValueError, TypeError):
+            except (ValueError, TypeError):  # Exception handler
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": "Current page must be a valid integer"
                 }), 422
 
-        # Handle total_pages updates
-        if "total_pages" in request.json:
-            try:
+  # Handle total_pages updates
+        if "total_pages" in request.json:  # Conditional statement
+            try:  # Exception handling block
                 total_pages = int(request.json["total_pages"])
-                if total_pages < 0:
+                if total_pages < 0:  # Conditional statement
                     return jsonify({
                         "error": "Unprocessable entity",
                         "message": "Total pages cannot be negative"
                     }), 422
-                # Check if current_page needs adjustment
-                if book.current_page > total_pages and total_pages > 0:
+  # Check if current_page needs adjustment
+                if book.current_page > total_pages and total_pages > 0:  # Conditional statement
                     return jsonify({
                         "error": "Unprocessable entity",
                         "message": ("Cannot set total pages less than "
@@ -457,18 +457,18 @@ def edit_book(id):
                     }), 422
                 book.total_pages = total_pages
                 changes_made = True
-            except (ValueError, TypeError):
+            except (ValueError, TypeError):  # Exception handler
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": "Total pages must be a valid integer"
                 }), 422
 
-        # Handle status updates
-        if "status" in request.json:
+  # Handle status updates
+        if "status" in request.json:  # Conditional statement
             valid_statuses = ["Currently reading", "To be read", "Read"]
             new_status = request.json["status"]
 
-            if new_status not in valid_statuses:
+            if new_status not in valid_statuses:  # Conditional statement
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": (f"Status must be one of: "
@@ -478,14 +478,14 @@ def edit_book(id):
             book.reading_status = new_status
             changes_made = True
 
-            # Handle social sharing for completed books
-            try:
+  # Handle social sharing for completed books
+            try:  # Exception handling block
                 user_settings = UserSettings.query.filter(
                     UserSettings.owner_id == claim_id,
                     UserSettings.send_book_events.is_(True)
                 ).first()
 
-                if user_settings and new_status == "Read":
+                if user_settings and new_status == "Read":  # Conditional statement
                     task_data = {
                         "title": book.title,
                         "author": book.author,
@@ -494,42 +494,42 @@ def edit_book(id):
                     _create_task(
                         "share_book_event", json.dumps(task_data), claim_id
                     )
-            except Exception as e:
+            except Exception as e:  # Exception handler
                 logger.warning("Failed to create social sharing task: %s", e)
-                # Don't fail the whole request for social sharing issues
+  # Don't fail the whole request for social sharing issues
 
-        # Handle rating updates
-        if "rating" in request.json:
+  # Handle rating updates
+        if "rating" in request.json:  # Conditional statement
             rating_value = request.json["rating"]
 
-            if rating_value is None:
+            if rating_value is None:  # Conditional statement
                 book.rating = None
                 changes_made = True
-            else:
-                try:
+            else:  # Default case
+                try:  # Exception handling block
                     rating_value = float(rating_value)
-                    if not (0 <= rating_value <= 5):
+                    if not (0 <= rating_value <= 5):  # Conditional statement
                         return jsonify({
                             "error": "Unprocessable entity",
                             "message": "Rating must be between 0 and 5"
                         }), 422
                     book.rating = Decimal(str(rating_value))
                     changes_made = True
-                except (ValueError, TypeError, InvalidOperation):
+                except (ValueError, TypeError, InvalidOperation):  # Exception handler
                     return jsonify({
                         "error": "Unprocessable entity",
                         "message": "Rating must be a valid number"
                     }), 422
 
-        # Handle title updates
-        if "title" in request.json:
+  # Handle title updates
+        if "title" in request.json:  # Conditional statement
             title = request.json["title"].strip()
-            if not title:
+            if not title:  # Conditional statement
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": "Title cannot be empty"
                 }), 422
-            if len(title) > 500:
+            if len(title) > 500:  # Conditional statement
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": "Title must be less than 500 characters"
@@ -537,10 +537,10 @@ def edit_book(id):
             book.title = title
             changes_made = True
 
-        # Handle author updates
-        if "author" in request.json:
+  # Handle author updates
+        if "author" in request.json:  # Conditional statement
             author = request.json["author"].strip() or None
-            if author and len(author) > 255:
+            if author and len(author) > 255:  # Conditional statement
                 return jsonify({
                     "error": "Unprocessable entity",
                     "message": "Author must be less than 255 characters"
@@ -548,20 +548,20 @@ def edit_book(id):
             book.author = author
             changes_made = True
 
-        # Handle description updates
-        if "description" in request.json:
+  # Handle description updates
+        if "description" in request.json:  # Conditional statement
             description = request.json["description"].strip() or None
             book.description = description
             changes_made = True
 
-        # Save changes if any were made
-        if changes_made:
+  # Save changes if any were made
+        if changes_made:  # Conditional statement
             book.save_to_db()
             return jsonify({'message': 'Book updated successfully'}), 200
-        else:
+        else:  # Default case
             return jsonify({'message': 'No changes made'}), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         db.session.rollback()
         logger.error("Error updating book: %s", e)
         return jsonify({
@@ -571,47 +571,47 @@ def edit_book(id):
 
 
 @books_endpoint.route("/v1/books/<id>", methods=["DELETE"])
-@jwt_required()
-def remove_book(id):
+@jwt_required()  # Requires valid JWT token for access
+def remove_book(id):  # Function: remove_book
     """
     Remove book from user's library.
 
     This will also delete all associated notes and data.
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate book ID
-        try:
+  # Validate book ID
+        try:  # Exception handling block
             book_id = int(id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Exception handler
             return jsonify({
                 "error": "Bad request",
                 "message": "Invalid book ID"
             }), 400
 
-        # Find the book
+  # Find the book
         book = Books.query.filter(
             Books.owner_id == claim_id, Books.id == book_id
         ).first()
 
-        if not book:
+        if not book:  # Conditional statement
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ID {id} was found"
             }), 404
 
-        # Store book title for confirmation message
+  # Store book title for confirmation message
         book_title = book.title
 
-        # Delete the book (cascade will handle notes)
+  # Delete the book (cascade will handle notes)
         book.delete()
 
         return jsonify({
             'message': f'Book "{book_title}" removed successfully'
         }), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         db.session.rollback()
         logger.error("Error removing book: %s", e)
         return jsonify({
@@ -621,37 +621,37 @@ def remove_book(id):
 
 
 @books_endpoint.route("/v1/books/<id>/notes", methods=["GET"])
-@jwt_required()
-def get_notes_for_book(id):
+@jwt_required()  # Requires valid JWT token for access
+def get_notes_for_book(id):  # Getter method for notes_for_book
     """
     Get all notes for a specific book.
 
     Returns all notes and annotations associated with the book.
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate book ID
-        try:
+  # Validate book ID
+        try:  # Exception handling block
             book_id = int(id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Exception handler
             return jsonify({
                 "error": "Bad request",
                 "message": "Invalid book ID"
             }), 400
 
-        # Find the book
+  # Find the book
         book = Books.query.filter(
             Books.owner_id == claim_id, Books.id == book_id
         ).first()
 
-        if not book:
+        if not book:  # Conditional statement
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ID {id} was found"
             }), 404
 
-        # Get notes for the book
+  # Get notes for the book
         notes_schema = NotesSchema(many=True)
         notes_data = notes_schema.dump(book.notes)
 
@@ -661,7 +661,7 @@ def get_notes_for_book(id):
             "book_title": book.title
         }), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error getting notes for book: %s", e)
         return jsonify({
             "error": "Internal server error",
@@ -670,8 +670,8 @@ def get_notes_for_book(id):
 
 
 @books_endpoint.route("/v1/books/<id>/notes", methods=["POST"])
-@jwt_required()
-def add_book_note(id):
+@jwt_required()  # Requires valid JWT token for access
+def add_book_note(id):  # Function: add_book_note
     """
     Add a note or annotation to a book.
 
@@ -682,84 +682,84 @@ def add_book_note(id):
         "visibility": "private"  // Optional: "private" or "public"
     }
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate book ID
-        try:
+  # Validate book ID
+        try:  # Exception handling block
             book_id = int(id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Exception handler
             return jsonify({
                 "error": "Bad request",
                 "message": "Invalid book ID"
             }), 400
 
-        # Validate request payload
-        if not request.json:
+  # Validate request payload
+        if not request.json:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Request must contain JSON data"
             }), 400
 
-        if "content" not in request.json:
+        if "content" not in request.json:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Missing required field: content"
             }), 400
 
         content = request.json["content"].strip()
-        if not content:
+        if not content:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Note content cannot be empty"
             }), 400
 
-        # Verify book exists and belongs to user
+  # Verify book exists and belongs to user
         book = Books.query.filter(
             Books.owner_id == claim_id, Books.id == book_id
         ).first()
-        if not book:
+        if not book:  # Conditional statement
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ID {id} was found"
             }), 404
 
-        # Handle optional quote_page
+  # Handle optional quote_page
         quote_page = request.json.get("quote_page")
-        if quote_page is not None:
-            try:
+        if quote_page is not None:  # Conditional statement
+            try:  # Exception handling block
                 quote_page = int(quote_page)
-                if quote_page < 1:
+                if quote_page < 1:  # Conditional statement
                     return jsonify({
                         "error": "Bad request",
                         "message": "Quote page must be a positive integer"
                     }), 400
-                # Validate against book's total pages
-                if (book.total_pages > 0 and
+  # Validate against book's total pages
+                if (book.total_pages > 0 and  # Conditional statement
                         quote_page > book.total_pages):
                     return jsonify({
                         "error": "Bad request",
                         "message": ("Quote page cannot exceed book's "
                                    "total pages")
                     }), 400
-            except (ValueError, TypeError):
+            except (ValueError, TypeError):  # Exception handler
                 return jsonify({
                     "error": "Bad request",
                     "message": "Quote page must be a valid integer"
                 }), 400
 
-        # Handle optional visibility
+  # Handle optional visibility
         visibility = request.json.get("visibility", "private")
-        if visibility not in ["private", "public"]:
+        if visibility not in ["private", "public"]:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Visibility must be either 'private' or 'public'"
             }), 400
 
-        # Map visibility to match database schema
+  # Map visibility to match database schema
         visibility_value = "hidden" if visibility == "private" else "public"
 
-        # Create the note
+  # Create the note
         new_note = Notes(  # type: ignore
             owner_id=claim_id,
             book_id=book_id,
@@ -775,7 +775,7 @@ def add_book_note(id):
             'book_title': book.title
         }), 201
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         db.session.rollback()
         logger.error("Error adding note to book: %s", e)
         return jsonify({
@@ -785,41 +785,41 @@ def add_book_note(id):
 
 
 @books_endpoint.route("/v1/books/<id>/details", methods=["GET"])
-@jwt_required()
-def get_book_details(id):
+@jwt_required()  # Requires valid JWT token for access
+def get_book_details(id):  # Getter method for book_details
     """
     Get detailed information about a specific book including notes.
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Validate book ID
-        try:
+  # Validate book ID
+        try:  # Exception handling block
             book_id = int(id)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError):  # Exception handler
             return jsonify({
                 "error": "Bad request",
                 "message": "Invalid book ID"
             }), 400
 
-        # Find the book
+  # Find the book
         book = Books.query.filter(
             Books.owner_id == claim_id, Books.id == book_id
         ).first()
 
-        if not book:
+        if not book:  # Conditional statement
             return jsonify({
                 "error": "Not found",
                 "message": f"No book with ID {id} was found"
             }), 404
 
-        # Serialize book with notes
+  # Serialize book with notes
         books_schema = BooksSchema(many=False)
         book_data = books_schema.dump(book)
 
         return jsonify(book_data), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error getting book details: %s", e)
         return jsonify({
             "error": "Internal server error",
@@ -829,29 +829,29 @@ def get_book_details(id):
 
 
 @books_endpoint.route("/v1/books/stats", methods=["GET"])
-@jwt_required()
-def get_book_stats():
+@jwt_required()  # Requires valid JWT token for access
+def get_book_stats():  # Getter method for book_stats
     """
     Get reading statistics for the authenticated user.
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
         
-        # Get counts for each reading status
+  # Get counts for each reading status
         stats = {}
         statuses = ["To be read", "Currently reading", "Read"]
         
-        for status in statuses:
+        for status in statuses:  # Loop iteration
             count = Books.query.filter(
                 Books.owner_id == claim_id,
                 Books.reading_status == status
             ).count()
             stats[status.lower().replace(" ", "_")] = count
         
-        # Get total books
+  # Get total books
         total_books = Books.query.filter(Books.owner_id == claim_id).count()
         
-        # Calculate reading progress
+  # Calculate reading progress
         progress_books = Books.query.filter(
             Books.owner_id == claim_id,
             Books.current_page > 0,
@@ -861,14 +861,14 @@ def get_book_stats():
         total_pages_read = sum(book.current_page for book in progress_books)
         total_pages_all = sum(book.total_pages for book in progress_books)
         
-        # Get average rating
+  # Get average rating
         rated_books = Books.query.filter(
             Books.owner_id == claim_id,
             Books.rating.isnot(None)
         ).all()
         
         avg_rating = None
-        if rated_books:
+        if rated_books:  # Conditional statement
             avg_rating = float(
                 sum(float(book.rating) for book in rated_books) / 
                 len(rated_books)
@@ -882,11 +882,11 @@ def get_book_stats():
             "total_pages_read": total_pages_read,
             "total_pages_all": total_pages_all,
             "average_rating": (round(avg_rating, 2)
-                               if avg_rating else None),
+                               if avg_rating else None),  # Conditional statement
             "rated_books_count": len(rated_books)
         }), 200
         
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error getting book stats: %s", e)
         return jsonify({
             "error": "Internal server error",
@@ -896,8 +896,8 @@ def get_book_stats():
 
 
 @books_endpoint.route("/v1/books/search", methods=["GET"])
-@jwt_required()
-def search_books():
+@jwt_required()  # Requires valid JWT token for access
+def search_books():  # Function: search_books
     """
     Advanced search endpoint for books with multiple filters.
     
@@ -909,10 +909,10 @@ def search_books():
     - limit: Number of results per page (default: 25, max: 100)
     - offset: Page number (default: 1)
     """
-    try:
+    try:  # Exception handling block
         claim_id = get_jwt()["id"]
 
-        # Parse search parameters
+  # Parse search parameters
         search_query = request.args.get('q', '').strip()
         status_filter = request.args.get('status')
         rating_min = request.args.get('rating_min')
@@ -920,24 +920,24 @@ def search_books():
         limit = request.args.get('limit', 25, type=int)
         offset = request.args.get('offset', 1, type=int)
 
-        # Validate pagination
-        if limit < 1 or limit > 100:
+  # Validate pagination
+        if limit < 1 or limit > 100:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Limit must be between 1 and 100"
             }), 400
 
-        if offset < 1:
+        if offset < 1:  # Conditional statement
             return jsonify({
                 "error": "Bad request",
                 "message": "Page offset must be greater than 0"
             }), 400
 
-        # Build base query
+  # Build base query
         query = Books.query.filter(Books.owner_id == claim_id)
 
-        # Apply search filter
-        if search_query:
+  # Apply search filter
+        if search_query:  # Conditional statement
             search_filter = db.or_(
                 Books.title.ilike(f"%{search_query}%"),
                 Books.author.ilike(f"%{search_query}%"),
@@ -946,43 +946,43 @@ def search_books():
             )
             query = query.filter(search_filter)
 
-        # Apply status filter
-        if status_filter:
+  # Apply status filter
+        if status_filter:  # Conditional statement
             valid_statuses = ["To be read", "Currently reading", "Read"]
-            if status_filter in valid_statuses:
+            if status_filter in valid_statuses:  # Conditional statement
                 query = query.filter(Books.reading_status == status_filter)
 
-        # Apply rating filters
-        if rating_min is not None:
-            try:
+  # Apply rating filters
+        if rating_min is not None:  # Conditional statement
+            try:  # Exception handling block
                 rating_min = float(rating_min)
-                if 0 <= rating_min <= 5:
+                if 0 <= rating_min <= 5:  # Conditional statement
                     query = query.filter(Books.rating >= rating_min)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError):  # Exception handler
                 return jsonify({
                     "error": "Bad request",
                     "message": "rating_min must be a number between 0 and 5"
                 }), 400
 
-        if rating_max is not None:
-            try:
+        if rating_max is not None:  # Conditional statement
+            try:  # Exception handling block
                 rating_max = float(rating_max)
-                if 0 <= rating_max <= 5:
+                if 0 <= rating_max <= 5:  # Conditional statement
                     query = query.filter(Books.rating <= rating_max)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError):  # Exception handler
                 return jsonify({
                     "error": "Bad request",
                     "message": "rating_max must be a number between 0 and 5"
                 }), 400
 
-        # Execute paginated query
+  # Execute paginated query
         books = query.paginate(
             page=offset,
             per_page=limit,
             error_out=False
         )
 
-        # Serialize response
+  # Serialize response
         books_schema = BooksSchema(many=True)
         response_data = {
             "items": books_schema.dump(books.items),
@@ -1004,7 +1004,7 @@ def search_books():
 
         return jsonify(response_data), 200
 
-    except Exception as e:
+    except Exception as e:  # Exception handler
         logger.error("Error searching books: %s", e)
         return jsonify({
             "error": "Internal server error",

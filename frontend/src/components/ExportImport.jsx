@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { Button, Modal, ModalBody, ModalHeader, ModalFooter, FileInput, Alert, Select } from "flowbite-react";
-import { RiDownloadLine, RiUploadLine, RiFileTextLine } from "react-icons/ri";
-import BooksService from '../services/books.service';
-import TasksService from '../services/tasks.service';
-import FilesService from '../services/files.service';
+import { useState } from 'react';  // React library import
+import { Button, Modal, ModalBody, ModalHeader, ModalFooter, FileInput, Alert, Select } from "flowbite-react";  // React library import
+import { RiDownloadLine, RiUploadLine, RiFileTextLine } from "react-icons/ri";  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
+import TasksService from '../services/tasks.service';  // Service layer import for API communication
+import FilesService from '../services/files.service';  // Service layer import for API communication
 import useToast from '../toast/useToast';
 
 function ExportImport() {
-    const [showModal, setShowModal] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
-    const [isImporting, setIsImporting] = useState(false);
-    const [exportFormat, setExportFormat] = useState('json');
+    const [showModal, setShowModal] = useState(false);  // React state hook for component state management
+    const [isExporting, setIsExporting] = useState(false);  // React state hook for component state management
+    const [isImporting, setIsImporting] = useState(false);  // React state hook for component state management
+    const [exportFormat, setExportFormat] = useState('json');  // React state hook for component state management
     const toast = useToast(4000);
 
     const handleExport = async () => {
-        setIsExporting(true);
+        setIsExporting(true);  // State update
         try {
             if (exportFormat === 'json') {
-                // Client-side JSON export (immediate)
+  // Client-side JSON export (immediate)
                 const response = await BooksService.get();
                 const books = response.data.items;
                 
@@ -51,20 +51,20 @@ function ExportImport() {
 
                 toast("success", `Exported ${books.length} books successfully!`);
             } else {
-                // Server-side export (CSV/HTML) via background tasks
+  // Server-side export (CSV/HTML) via background tasks
                 await TasksService.create({
                     type: `${exportFormat}_export`,
                     data: {}
                 });
                 
                 toast("info", `${exportFormat.toUpperCase()} export started! You'll be able to download it from your files once complete.`);
-                setShowModal(false);
+                setShowModal(false);  // State update
             }
         } catch (error) {
             console.error('Export error:', error);
             toast("error", "Failed to export books. Please try again.");
         } finally {
-            setIsExporting(false);
+            setIsExporting(false);  // State update
         }
     };
 
@@ -72,12 +72,12 @@ function ExportImport() {
         const file = event.target.files[0];
         if (!file) return;
 
-        setIsImporting(true);
+        setIsImporting(true);  // State update
         try {
             const fileExtension = file.name.split('.').pop().toLowerCase();
             
             if (fileExtension === 'json') {
-                // Handle JSON import (client-side)
+  // Handle JSON import (client-side)
                 const text = await file.text();
                 const importData = JSON.parse(text);
                 
@@ -114,10 +114,10 @@ function ExportImport() {
                     toast("warning", `${errorCount} books could not be imported (possibly duplicates)`);
                 }
             } else if (fileExtension === 'csv') {
-                // Handle CSV import (server-side via file upload)
+  // Handle CSV import (server-side via file upload)
                 const formData = new FormData();
                 formData.append('file', file);
-                formData.append('type', 'goodreads'); // Default to Goodreads format
+                formData.append('type', 'goodreads');  // Default to Goodreads format
                 formData.append('allow_duplicates', 'false');
 
                 try {
@@ -137,22 +137,22 @@ function ExportImport() {
                 throw new Error("Unsupported file format");
             }
 
-            setShowModal(false);
+            setShowModal(false);  // State update
         } catch (error) {
             console.error('Import error:', error);
             toast("error", "Failed to import books. Please check the file format.");
         } finally {
-            setIsImporting(false);
+            setIsImporting(false);  // State update
             event.target.value = '';
         }
     };
 
-    return (
+    return (  // JSX return statement
         <>
             <Button
                 color="gray"
                 size="sm"
-                onClick={() => setShowModal(true)}
+                onClick={() => setShowModal(true)}  // Event handler assignment
                 className="flex items-center gap-2"
             >
                 <RiFileTextLine className="w-4 h-4" />
@@ -174,7 +174,7 @@ function ExportImport() {
                             <label className="block text-sm font-medium mb-2">Export Format</label>
                             <Select
                                 value={exportFormat}
-                                onChange={(e) => setExportFormat(e.target.value)}
+                                onChange={(e) => setExportFormat(e.target.value)}  // Event handler assignment
                             >
                                 <option value="json">JSON (Immediate Download)</option>
                                 <option value="csv">CSV (Background Export)</option>
@@ -182,7 +182,7 @@ function ExportImport() {
                             </Select>
                         </div>
                         <Button
-                            onClick={handleExport}
+                            onClick={handleExport}  // Event handler assignment
                             disabled={isExporting}
                             className="w-full"
                         >
@@ -208,7 +208,7 @@ function ExportImport() {
                         </Alert>
                         <FileInput
                             accept=".json,.csv"
-                            onChange={handleImport}
+                            onChange={handleImport}  // Event handler assignment
                             disabled={isImporting}
                             helperText="Select a JSON or CSV file (BookVault or Goodreads format)"
                         />
@@ -220,7 +220,7 @@ function ExportImport() {
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="gray" onClick={() => setShowModal(false)}>
+                    <Button color="gray" onClick={() => setShowModal(false)}>  // Event handler assignment
                         Close
                     </Button>
                 </ModalFooter>
@@ -229,4 +229,4 @@ function ExportImport() {
     );
 }
 
-export default ExportImport;
+export default ExportImport;  // Export for use in other modules

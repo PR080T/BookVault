@@ -1,6 +1,6 @@
 import { useToastDispatchContext } from "./hooks";
 
-export function useToast(delay) {
+export function useToast(delay) {  // Export for use in other modules
     const dispatch = useToastDispatchContext();
 
     function toast(type, message) {
@@ -14,7 +14,7 @@ export function useToast(delay) {
             },
         });
 
-        setTimeout(() => {
+        setTimeout(() => {  // State update
             dispatch({ type: "DELETE_TOAST", id });
         }, delay);
     }
@@ -22,4 +22,4 @@ export function useToast(delay) {
     return toast;
 }
 
-export default useToast;
+export default useToast;  // Export for use in other modules

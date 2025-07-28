@@ -1,23 +1,23 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ButtonGroup, Dropdown, DropdownItem, DropdownHeader, DropdownDivider} from "flowbite-react";
-import BooksService from '../services/books.service';
+import { useState, useEffect, useCallback } from 'react'  // React library import
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, ButtonGroup, Dropdown, DropdownItem, DropdownHeader, DropdownDivider} from "flowbite-react";  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
 import useToast from '../toast/useToast';
 import UpdateReadingStatusButton from './UpdateReadingStatusButton';
-import { RiBook2Line } from "react-icons/ri";
-import { RiBookOpenLine } from "react-icons/ri";
-import { RiBookmarkLine } from "react-icons/ri";
-import { RiDeleteBin6Line } from "react-icons/ri";
+import { RiBook2Line } from "react-icons/ri";  // React library import
+import { RiBookOpenLine } from "react-icons/ri";  // React library import
+import { RiBookmarkLine } from "react-icons/ri";  // React library import
+import { RiDeleteBin6Line } from "react-icons/ri";  // React library import
 import RemoveBookModal from './RemoveBookModal';
 import UpdateReadingStatusView from './UpdateReadingStatusView';
 import { useStats } from '../contexts/StatsContext';
 
 function AddToReadingListButton(props) {
-    const [readingStatus, setReadingStatus] = useState();
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState();
-    const [openModalReading, setOpenModalReading] = useState(false);
-    const [readID, setReadID] = useState();
-    const [openRemoveModal, setOpenRemoveModal] = useState();
+    const [readingStatus, setReadingStatus] = useState();  // React state hook for component state management
+    const [currentPage, setCurrentPage] = useState(0);  // React state hook for component state management
+    const [totalPages, setTotalPages] = useState();  // React state hook for component state management
+    const [openModalReading, setOpenModalReading] = useState(false);  // React state hook for component state management
+    const [readID, setReadID] = useState();  // React state hook for component state management
+    const [openRemoveModal, setOpenRemoveModal] = useState();  // React state hook for component state management
     const toast = useToast(4000);
     const { refreshStats } = useStats();
 
@@ -26,9 +26,9 @@ function AddToReadingListButton(props) {
         BooksService.status(props.isbn).then(
             response => {
                 if (import.meta.env.DEV) console.log("Book status response:", response.data);
-                setReadingStatus(response.data.reading_status);
-                setReadID(response.data.id);
-                setCurrentPage(response.data.current_page);
+                setReadingStatus(response.data.reading_status);  // State update
+                setReadID(response.data.id);  // State update
+                setCurrentPage(response.data.current_page);  // State update
             },
             error => {
               const resMessage =
@@ -48,7 +48,7 @@ function AddToReadingListButton(props) {
         var arr = {}
         arr.title = props.data?.title;
         arr.isbn = props.isbn;
-        arr.author = props.data?.author_name?.[0]; //Authors object from the API can have more than one object inside.. fix this later by flattening and getting a list of all authors names.
+        arr.author = props.data?.author_name?.[0];  // Authors object from the API can have more than one object inside.. fix this later by flattening and getting a list of all authors names.
         if (props.description) {
             arr.description = props.description;
         }
@@ -77,8 +77,8 @@ function AddToReadingListButton(props) {
                 if (import.meta.env.DEV) console.log("Book added successfully:", response.data);
                 toast("success", response.data.message);
                 updateReadStatus();
-                refreshStats(); // Refresh stats after adding book
-                // Call the onSuccess callback if provided
+                refreshStats();  // Refresh stats after adding book
+  // Call the onSuccess callback if provided
                 if (props.onSuccess) {
                     props.onSuccess();
                 }
@@ -96,7 +96,7 @@ function AddToReadingListButton(props) {
     }
 
     const editRead = (status, current_page) => {
-        setOpenModalReading(false);
+        setOpenModalReading(false);  // State update
         if (!status) {
             status = readingStatus;
         }
@@ -109,11 +109,11 @@ function AddToReadingListButton(props) {
             BooksService.edit(readID, {"status": status, "current_page": current_page}).then(
                 response => {
                     if (import.meta.env.DEV) console.log("Book edited successfully:", response.data);
-                    setReadingStatus(status);
+                    setReadingStatus(status);  // State update
                     toast("success", response.data.message);
-                    setOpenModalReading(false);
-                    refreshStats(); // Refresh stats after editing book
-                    // Call the onSuccess callback if provided
+                    setOpenModalReading(false);  // State update
+                    refreshStats();  // Refresh stats after editing book
+  // Call the onSuccess callback if provided
                     if (props.onSuccess) {
                         props.onSuccess();
                     }
@@ -121,37 +121,37 @@ function AddToReadingListButton(props) {
             )
         } else {
             if (import.meta.env.DEV) console.log("Adding new book");
-            setReadingStatus(status);
-            setCurrentPage(current_page);
+            setReadingStatus(status);  // State update
+            setCurrentPage(current_page);  // State update
             handleSave(status, current_page);
         }
     }
 
-    useEffect(() => {
-      setTotalPages(props.data?.number_of_pages_median)
+    useEffect(() => {  // React effect hook for side effects
+      setTotalPages(props.data?.number_of_pages_median)  // State update
       updateReadStatus();
     }, [props.data, updateReadStatus])
     
     const handleSetReadingToBeRead = () => {
-        setReadingStatus("To be read");
+        setReadingStatus("To be read");  // State update
         editRead("To be read");
     }
 
     const handleSetReadingCurrentlyReading = () => {
-        setReadingStatus("Currently reading")
-        setOpenModalReading(true);
+        setReadingStatus("Currently reading")  // State update
+        setOpenModalReading(true);  // State update
     }
     const handleSetReadingRead = () => {
-        setReadingStatus("Read");
-        setCurrentPage(totalPages);
+        setReadingStatus("Read");  // State update
+        setCurrentPage(totalPages);  // State update
         editRead("Read", totalPages);
     }
     
     const handleBookRemoval = () => {
-        setReadingStatus(undefined);
+        setReadingStatus(undefined);  // State update
     }
 
-    return (
+    return (  // JSX return statement
         <div>
             <Modal show={openModalReading} onClose={() => setOpenModalReading(false)}>
                 <ModalHeader className="border-gray-200">Add {props.data?.title} to currently reading</ModalHeader>
@@ -162,8 +162,8 @@ function AddToReadingListButton(props) {
                     />
                 </ModalBody>
                 <ModalFooter>
-                <Button onClick={() => editRead()}>Save</Button>
-                <Button color="alternative" onClick={() => setOpenModalReading(false)}>
+                <Button onClick={() => editRead()}>Save</Button>  // Event handler assignment
+                <Button color="alternative" onClick={() => setOpenModalReading(false)}>  // Event handler assignment
                     Close
                 </Button>
                 </ModalFooter>
@@ -172,13 +172,13 @@ function AddToReadingListButton(props) {
             <ButtonGroup outline>
                 {(() => {
                     if (readingStatus === "To be read") {
-                        return <Button onClick={() => handleSetReadingCurrentlyReading()}><RiBookOpenLine className="mr-2 h-5 w-5" />Currently reading</Button>;
+                        return <Button onClick={() => handleSetReadingCurrentlyReading()}><RiBookOpenLine className="mr-2 h-5 w-5" />Currently reading</Button>;  // Event handler assignment
                     } else if (readingStatus === "Currently reading") {
                         return <UpdateReadingStatusButton currentPage={currentPage} totalPages={totalPages} id={readID} title={props.data?.title} rating={0} buttonStyle={"alternative"} onSucess={updateReadStatus}/>
                     } else if (readingStatus === "Read") {
                         return <Button disabled><RiBook2Line className="mr-2 h-5 w-5" />Read</Button>;
                     }else {
-                        return <Button onClick={() => handleSetReadingToBeRead()}><RiBookmarkLine className="mr-2 h-5 w-5" />Want to read</Button>;
+                        return <Button onClick={() => handleSetReadingToBeRead()}><RiBookmarkLine className="mr-2 h-5 w-5" />Want to read</Button>;  // Event handler assignment
                     }
                 })()}
         
@@ -188,27 +188,27 @@ function AddToReadingListButton(props) {
                             return <>
                                 <DropdownHeader ><span className="block text-sm opacity-50">Want to read</span></DropdownHeader>
                                 <DropdownDivider />
-                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead() }>Read</DropdownItem>
-                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>
+                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead() }>Read</DropdownItem>  // Event handler assignment
+                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>  // Event handler assignment
                             </>;
                         } else if (readingStatus === "Currently reading") {
                             return <>
                                 <DropdownHeader><span className="block text-sm opacity-50">Currently reading</span></DropdownHeader>
                                 <DropdownDivider />
-                                <DropdownItem icon={RiBookmarkLine} onClick={() => handleSetReadingToBeRead() }>Want to read</DropdownItem>
-                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead() }>Read</DropdownItem>
-                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>
+                                <DropdownItem icon={RiBookmarkLine} onClick={() => handleSetReadingToBeRead() }>Want to read</DropdownItem>  // Event handler assignment
+                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead() }>Read</DropdownItem>  // Event handler assignment
+                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>  // Event handler assignment
                             </>;
                         } else if (readingStatus === "Read") {
                             return <>
-                                <DropdownItem icon={RiBookmarkLine} onClick={() => handleSetReadingToBeRead() }>Want to read</DropdownItem>
-                                <DropdownItem icon={RiBookOpenLine} onClick={() => handleSetReadingCurrentlyReading() }>Currently reading</DropdownItem>
-                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>
+                                <DropdownItem icon={RiBookmarkLine} onClick={() => handleSetReadingToBeRead() }>Want to read</DropdownItem>  // Event handler assignment
+                                <DropdownItem icon={RiBookOpenLine} onClick={() => handleSetReadingCurrentlyReading() }>Currently reading</DropdownItem>  // Event handler assignment
+                                <DropdownItem onClick={() => setOpenRemoveModal(true)}><RiDeleteBin6Line size={18} className="mr-1" />Remove</DropdownItem>  // Event handler assignment
                             </>;
                         }else {
                             return <>
-                                <DropdownItem icon={RiBookOpenLine} onClick={() => handleSetReadingCurrentlyReading()}>Currently reading</DropdownItem>
-                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead()}>Read</DropdownItem>
+                                <DropdownItem icon={RiBookOpenLine} onClick={() => handleSetReadingCurrentlyReading()}>Currently reading</DropdownItem>  // Event handler assignment
+                                <DropdownItem icon={RiBook2Line} onClick={() => handleSetReadingRead()}>Read</DropdownItem>  // Event handler assignment
                             </>;
                         }
                     })()}
@@ -220,4 +220,4 @@ function AddToReadingListButton(props) {
     )
 }
 
-export default AddToReadingListButton
+export default AddToReadingListButton  // Export for use in other modules

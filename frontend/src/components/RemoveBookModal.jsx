@@ -1,6 +1,6 @@
-import { Modal, ModalBody, ModalHeader, Button } from 'flowbite-react'
-import BooksService from '../services/books.service';
-import { RiErrorWarningLine } from "react-icons/ri";
+import { Modal, ModalBody, ModalHeader, Button } from 'flowbite-react'  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
+import { RiErrorWarningLine } from "react-icons/ri";  // React library import
 import useToast from '../toast/useToast';
 import { useStats } from '../contexts/StatsContext';
 
@@ -12,7 +12,7 @@ function RemoveBookModal(props) {
         BooksService.remove(props.id).then(
             response => {
                 toast("success", response.data.message);
-                refreshStats(); // Refresh stats after removing book
+                refreshStats();  // Refresh stats after removing book
                 props.onSuccess();
             },
             error => {
@@ -28,7 +28,7 @@ function RemoveBookModal(props) {
         props.close(false);
     }
 
-    return (
+    return (  // JSX return statement
         <div>
             <Modal show={props.open} size="md" onClose={() => props.close(false)} popup>
             <ModalHeader />
@@ -39,10 +39,10 @@ function RemoveBookModal(props) {
                         Are you sure you want to remove this book?
                     </h3>
                     <div className="flex justify-center gap-4">
-                    <Button color="red" onClick={() => removeBook()}>
+                    <Button color="red" onClick={() => removeBook()}>  // Event handler assignment
                         {"Yes, I'm sure"}
                     </Button>
-                    <Button color="alternative" onClick={() => props.close(false)}>
+                    <Button color="alternative" onClick={() => props.close(false)}>  // Event handler assignment
                         {"No, cancel"}
                     </Button>
                     </div>
@@ -53,4 +53,4 @@ function RemoveBookModal(props) {
     )
 }
 
-export default RemoveBookModal
+export default RemoveBookModal  // Export for use in other modules

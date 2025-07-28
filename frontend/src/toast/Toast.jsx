@@ -1,16 +1,16 @@
-import { Alert } from "flowbite-react";
+import { Alert } from "flowbite-react";  // React library import
 import { useToastDispatchContext } from "./hooks";
-import { IoMdInformationCircleOutline, IoMdCheckmarkCircleOutline } from "react-icons/io";
-import { MdErrorOutline } from "react-icons/md";
+import { IoMdInformationCircleOutline, IoMdCheckmarkCircleOutline } from "react-icons/io";  // React library import
+import { MdErrorOutline } from "react-icons/md";  // React library import
 
-export default function Toast({ type, message, id }) {
+export default function Toast({ type, message, id }) {  // Export for use in other modules
     const dispatch = useToastDispatchContext();
     
     const handleDismiss = () => {
         dispatch({ type: "DELETE_TOAST", id });
     };
 
-    return (
+    return (  // JSX return statement
         <div className="animate-slide-in-right">
             {type === "success" && (
                 <Alert 

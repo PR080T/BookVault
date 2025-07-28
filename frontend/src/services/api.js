@@ -1,27 +1,27 @@
-import axios from 'axios';
+import axios from 'axios';  // HTTP client for API calls
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
+  // API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT || 'http:  // localhost:5000';
 
-// Ensure URL doesn't end with slash for consistent API calls
+  // Ensure URL doesn't end with slash for consistent API calls
 const normalizedURL = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
 
-// Create axios instance with default configuration
-const api = axios.create({
+  // Create axios instance with default configuration
+const api = axios.create({  // API call to backend
   baseURL: normalizedURL,
-  timeout: 15000, // Reduced timeout to 15 seconds for better UX
+  timeout: 15000,  // Reduced timeout to 15 seconds for better UX
   headers: {
     'Content-Type': 'application/json',
   },
   // Add retry configuration
   validateStatus: function (status) {
-    return status < 500; // Resolve only if the status code is less than 500
+    return status < 500;  // Resolve only if the status code is less than 500
   }
 });
 
-// Add retry functionality for network errors
-const MAX_RETRIES = 2; // Reduced retries for faster feedback
-const RETRY_DELAY = 800; // Reduced delay
+  // Add retry functionality for network errors
+const MAX_RETRIES = 2;  // Reduced retries for faster feedback
+const RETRY_DELAY = 800;  // Reduced delay
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -29,7 +29,7 @@ const retryRequest = async (config, retryCount = 0) => {
   try {
     return await api(config);
   } catch (error) {
-    // Retry on network errors or server errors (5xx)
+  // Retry on network errors or server errors (5xx)
     const shouldRetry = retryCount < MAX_RETRIES && (
       !error.response || 
       error.response.status >= 500 || 
@@ -52,7 +52,7 @@ const retryRequest = async (config, retryCount = 0) => {
   }
 };
 
-// Request interceptor to add auth token
+  // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     try {
@@ -71,19 +71,19 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+  // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle network errors (no response received)
+  // Handle network errors (no response received)
     if (!error.response) {
       if (import.meta.env.DEV) {
         console.error('Network error:', error.message);
       }
       
-      // Provide more specific error messages based on error type
+  // Provide more specific error messages based on error type
       let errorMessage = 'Network error - please check your connection';
       
       if (error.code === 'ECONNREFUSED') {
@@ -104,17 +104,17 @@ api.interceptors.response.use(
       });
     }
 
-    // Handle specific HTTP status codes
+  // Handle specific HTTP status codes
     switch (error.response.status) {
       case 401: {
-        // Token expired - attempt to refresh if not already retrying
+  // Token expired - attempt to refresh if not already retrying
         if (!originalRequest._retry) {
           originalRequest._retry = true;
           
           try {
             const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
             if (user.refresh_token) {
-              const response = await axios.post(
+              const response = await axios.post(  // API call to backend
                 `${normalizedURL}/v1/token/refresh`,
                 {},
                 {
@@ -126,12 +126,12 @@ api.interceptors.response.use(
               const updatedUser = { ...user, ...newTokens };
               localStorage.setItem('auth_user', JSON.stringify(updatedUser));
               
-              // Update the original request with new token
+  // Update the original request with new token
               originalRequest.headers.Authorization = `Bearer ${newTokens.access_token}`;
               return api(originalRequest);
             }
           } catch (refreshError) {
-            // Refresh failed - redirect to login
+  // Refresh failed - redirect to login
             localStorage.removeItem('auth_user');
             const currentPath = window.location.pathname;
             if (currentPath !== '/login' && currentPath !== '/register') {
@@ -142,7 +142,7 @@ api.interceptors.response.use(
           }
         }
         
-        // If retry failed or no refresh token, redirect to login
+  // If retry failed or no refresh token, redirect to login
         localStorage.removeItem('auth_user');
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/register') {
@@ -191,8 +191,8 @@ api.interceptors.response.use(
   }
 );
 
-// Connection status checker
-export const checkConnection = async () => {
+  // Connection status checker
+export const checkConnection = async () => {  // Export for use in other modules
   try {
     const response = await api.get('/health', { timeout: 5000 });
     return { 
@@ -223,8 +223,8 @@ export const checkConnection = async () => {
   }
 };
 
-// Enhanced API with retry capability
-export const apiWithRetry = {
+  // Enhanced API with retry capability
+export const apiWithRetry = {  // Export for use in other modules
   get: (url, config = {}) => retryRequest({ ...config, method: 'GET', url }),
   post: (url, data, config = {}) => retryRequest({ ...config, method: 'POST', url, data }),
   put: (url, data, config = {}) => retryRequest({ ...config, method: 'PUT', url, data }),
@@ -232,4 +232,4 @@ export const apiWithRetry = {
   delete: (url, config = {}) => retryRequest({ ...config, method: 'DELETE', url }),
 };
 
-export default api;
+export default api;  // Export for use in other modules

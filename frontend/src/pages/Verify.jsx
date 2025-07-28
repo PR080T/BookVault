@@ -1,20 +1,20 @@
-import { Button, Label, TextInput, Card } from 'flowbite-react'
-import { useState, useEffect } from 'react'
-import { useNavigate, useLocation} from 'react-router-dom';
-import AuthService from "../services/auth.service";
+import { Button, Label, TextInput, Card } from 'flowbite-react'  // React library import
+import { useState, useEffect } from 'react'  // React library import
+import { useNavigate, useLocation} from 'react-router-dom';  // React library import
+import AuthService from "../services/auth.service";  // Service layer import for API communication
 import useToast from '../toast/useToast';
 import AnimatedLayout from '../AnimatedLayout';
 
 function Verify() {
-    const [code, setCode] = useState();
-    const [email, setEmail] = useState();
+    const [code, setCode] = useState();  // React state hook for component state management
+    const [email, setEmail] = useState();  // React state hook for component state management
 
-    let navigate = useNavigate();
-    let location = useLocation();
+    let navigate = useNavigate();  // React Router hook for programmatic navigation
+    let location = useLocation();  // React Router hook for current location
     const toast = useToast(4000);
 
-    useEffect(() => {
-        setEmail(location.state.email);
+    useEffect(() => {  // React effect hook for side effects
+        setEmail(location.state.email);  // State update
     }, [location.state])
     
 
@@ -42,7 +42,7 @@ function Verify() {
         return address.replace(regex, (x, y) => y || '*')
     }; 
 
-    return (
+    return (  // JSX return statement
         <AnimatedLayout>
             <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
                 <div className="w-full max-w-lg space-y-10">
@@ -62,7 +62,7 @@ function Verify() {
 
                     {/* Verification Form */}
                     <Card className="glass-effect elegant-shadow-lg border-0 rounded-2xl">
-                        <form className="space-y-8 p-8" onSubmit={handleVerify}>
+                        <form className="space-y-8 p-8" onSubmit={handleVerify}>  // Event handler assignment
                             {!email && (
                                 <div>
                                     <div className="mb-3 block">
@@ -74,7 +74,7 @@ function Verify() {
                                         placeholder="name@example.com" 
                                         required 
                                         value={email} 
-                                        onChange={e => setEmail(e.target.value)}
+                                        onChange={e => setEmail(e.target.value)}  // Event handler assignment
                                         className="w-full"
                                         sizing="lg"
                                     />
@@ -93,7 +93,7 @@ function Verify() {
                                     placeholder="ABCD1234" 
                                     required 
                                     value={code} 
-                                    onChange={e => setCode(e.target.value)}
+                                    onChange={e => setCode(e.target.value)}  // Event handler assignment
                                     className="w-full font-mono text-center text-lg tracking-widest"
                                     sizing="lg"
                                 />
@@ -117,4 +117,4 @@ function Verify() {
     )
 }
 
-export default Verify
+export default Verify  // Export for use in other modules

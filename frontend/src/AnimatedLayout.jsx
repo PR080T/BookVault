@@ -7,7 +7,7 @@ const variants = {
   }
   
   const AnimatedLayout = ({ children }) => {
-    return (
+    return (  // JSX return statement
       <motion.div
         initial="hidden"
         animate="enter"
@@ -20,4 +20,4 @@ const variants = {
     );
   };
   
-  export default AnimatedLayout;
+  export default AnimatedLayout;  // Export for use in other modules

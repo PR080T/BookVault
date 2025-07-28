@@ -1,8 +1,8 @@
 function ESCIcon() {
-  return (
+  return (  // JSX return statement
     <svg
         className="text-gray-500 dark:text-gray-400"
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns="http:  // www.w3.org/2000/svg"
       width="32"
       height="32"
       version="1.1"
@@ -65,4 +65,4 @@ function ESCIcon() {
   );
 }
 
-export default ESCIcon;
+export default ESCIcon;  // Export for use in other modules

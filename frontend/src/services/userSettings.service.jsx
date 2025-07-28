@@ -8,7 +8,7 @@ const edit = (data) => {
     return api.patch("/v1/settings", data);
 }
 
-export default {
+export default {  // Export for use in other modules
     get,
     edit,
 };

@@ -1,22 +1,22 @@
-import React from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate} from "react-router-dom";
-import BookDetails from "./pages/BookDetails";
-import Library from "./pages/Library";
-import Home from "./pages/Home";
+import React from "react";  // React library import
+import { Routes, Route, Navigate, useLocation, useNavigate} from "react-router-dom";  // React library import
+import BookDetails from "./pages/BookDetails";  // Page component import
+import Library from "./pages/Library";  // Page component import
+import Home from "./pages/Home";  // Page component import
 
 import ToastContainer from "./toast/Container";
-import NavigationMenu from "./components/Navbar"
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
-import Footer from "./components/Footer";
-import Register from "./pages/Register";
-import AuthService from "./services/auth.service";
-import SidebarNav from "./components/SidebarNav";
-import Verify from "./pages/Verify";
-import Settings from "./pages/Settings";
-import ErrorBoundary from "./components/ErrorBoundary";
-import ConnectionStatus from "./components/ConnectionStatus";
-import globalRouter from "./GlobalRouter";
+import NavigationMenu from "./components/Navbar"  // Reusable UI component import
+import Login from "./pages/Login";  // Page component import
+import Profile from "./pages/Profile";  // Page component import
+import Footer from "./components/Footer";  // Reusable UI component import
+import Register from "./pages/Register";  // Page component import
+import AuthService from "./services/auth.service";  // Service layer import for API communication
+import SidebarNav from "./components/SidebarNav";  // Reusable UI component import
+import Verify from "./pages/Verify";  // Page component import
+import Settings from "./pages/Settings";  // Page component import
+import ErrorBoundary from "./components/ErrorBoundary";  // Reusable UI component import
+import ConnectionStatus from "./components/ConnectionStatus";  // Reusable UI component import
+import globalRouter from "./GlobalRouter";  // React Router for navigation
 import { AnimatePresence } from "framer-motion";
 import { StatsProvider } from "./contexts/StatsContext";
 
@@ -26,19 +26,19 @@ function PrivateRoute({ children }) {
 }
 
 function App() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();  // React Router hook for programmatic navigation
   globalRouter.navigate = navigate;
 
-  let location = useLocation();
+  let location = useLocation();  // React Router hook for current location
 
   // Keyboard shortcuts
-  React.useEffect(() => {
+  React.useEffect(() => {  // React effect hook for side effects
     const handleKeyDown = (event) => {
-      // Ctrl/Cmd + K for quick search
+  // Ctrl/Cmd + K for quick search
       if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
         event.preventDefault();
         if (AuthService.getCurrentUser()) {
-          // Trigger search modal or navigate to search
+  // Trigger search modal or navigate to search
           const searchButton = document.querySelector('[aria-label="Open search"]');
           if (searchButton) {
             searchButton.click();
@@ -48,10 +48,10 @@ function App() {
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);  // JSX return statement
   }, []);
 
-  return (
+  return (  // JSX return statement
     <ErrorBoundary>
       <StatsProvider>
         <div className="min-h-screen">
@@ -95,4 +95,4 @@ function App() {
   )
 }
 
-export default App
+export default App  // Export for use in other modules

@@ -1,4 +1,4 @@
-import { Spinner } from "flowbite-react";
+import { Spinner } from "flowbite-react";  // React library import
 
 function LoadingSpinner({ size = "md", text = "Loading...", fullScreen = false }) {
 
@@ -14,18 +14,18 @@ function LoadingSpinner({ size = "md", text = "Loading...", fullScreen = false }
     );
 
     if (fullScreen) {
-        return (
+        return (  // JSX return statement
             <div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center">
                 {content}
             </div>
         );
     }
 
-    return (
+    return (  // JSX return statement
         <div className="flex items-center justify-center p-8">
             {content}
         </div>
     );
 }
 
-export default LoadingSpinner;
+export default LoadingSpinner;  // Export for use in other modules

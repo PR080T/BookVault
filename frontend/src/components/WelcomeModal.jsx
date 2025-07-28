@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'  // React library import
 import useToast from '../toast/useToast';
-import ProfileService from '../services/profile.service';
-import { Button, TextInput, Label, Modal, ModalBody, Popover, Select } from "flowbite-react";
-import { RiQuestionLine } from "react-icons/ri";
+import ProfileService from '../services/profile.service';  // Service layer import for API communication
+import { Button, TextInput, Label, Modal, ModalBody, Popover, Select } from "flowbite-react";  // React library import
+import { RiQuestionLine } from "react-icons/ri";  // React library import
 
 function WelcomeModal(props) {
 
-    const [showWelcomeScreen, setShowWelcomeScreen] = useState();
-    const [createDisplayName, setCreateDisplayName] = useState();
-    const [profileVisibility, setProfileVisibility] = useState("hidden");
-    const [contentIndex, setContentIndex] = useState(0);
+    const [showWelcomeScreen, setShowWelcomeScreen] = useState();  // React state hook for component state management
+    const [createDisplayName, setCreateDisplayName] = useState();  // React state hook for component state management
+    const [profileVisibility, setProfileVisibility] = useState("hidden");  // React state hook for component state management
+    const [contentIndex, setContentIndex] = useState(0);  // React state hook for component state management
 
     const toast = useToast(4000);
 
@@ -25,13 +25,13 @@ function WelcomeModal(props) {
         </div>
     )
     
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         if (localStorage.getItem("show_welcome_screen") != "false") {
             getProfileData()
         }
     }, [])
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         if (props.show) {
             getProfileData()
         }
@@ -45,16 +45,16 @@ function WelcomeModal(props) {
         ProfileService.get().then(
             response => {
                 if (response.status == 404) {
-                    setShowWelcomeScreen(true);
+                    setShowWelcomeScreen(true);  // State update
                 } else {
-                    setShowWelcomeScreen(false);
+                    setShowWelcomeScreen(false);  // State update
                     localStorage.setItem("show_welcome_screen", false);
                 }
             },
             error => {
                 if (error.response) {
                     if (error.response.status == 404) {
-                        setShowWelcomeScreen(true);
+                        setShowWelcomeScreen(true);  // State update
                     }
                 }
             }
@@ -66,7 +66,7 @@ function WelcomeModal(props) {
         ProfileService.create({"display_name": createDisplayName, "visibility": profileVisibility}).then(
             response => {
                 toast("success", response.data.message);
-                setContentIndex(1);
+                setContentIndex(1);  // State update
                 localStorage.setItem("show_welcome_screen", false);
                 props.onProfileCreate();
             },
@@ -82,13 +82,13 @@ function WelcomeModal(props) {
         )
     }
 
-    return (
+    return (  // JSX return statement
         <>
         {showWelcomeScreen &&
             <Modal show={showWelcomeScreen} size="lg" dismissible={false}>
                 <ModalBody className="p-8">
                     {contentIndex == 0 &&
-                    <form className="flex flex-col gap-6" onSubmit={handleCreateProfile}>
+                    <form className="flex flex-col gap-6" onSubmit={handleCreateProfile}>  // Event handler assignment
                         <div className="text-center mb-6">
                             <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <span className="text-3xl">📚</span>
@@ -115,7 +115,7 @@ function WelcomeModal(props) {
                                     type="text" 
                                     required 
                                     value={createDisplayName} 
-                                    onChange={(e) => setCreateDisplayName(e.target.value)}
+                                    onChange={(e) => setCreateDisplayName(e.target.value)}  // Event handler assignment
                                     placeholder="Enter your display name"
                                     className="w-full"
                                 />
@@ -129,7 +129,7 @@ function WelcomeModal(props) {
                                     id="visibility" 
                                     required 
                                     value={profileVisibility} 
-                                    onChange={(e) => setProfileVisibility(e.target.value)}
+                                    onChange={(e) => setProfileVisibility(e.target.value)}  // Event handler assignment
                                     className="w-full"
                                 >
                                     <option value="hidden">🔒 Hidden - Only you can see your profile</option>
@@ -165,7 +165,7 @@ function WelcomeModal(props) {
                                 </div>
                             </div>
                             <Button 
-                                onClick={() => setShowWelcomeScreen(false)}
+                                onClick={() => setShowWelcomeScreen(false)}  // Event handler assignment
                                 className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                                 size="lg"
                             >
@@ -180,4 +180,4 @@ function WelcomeModal(props) {
     )
 }
 
-export default WelcomeModal
+export default WelcomeModal  // Export for use in other modules

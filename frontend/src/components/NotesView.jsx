@@ -1,34 +1,34 @@
-import { Button, ButtonGroup, Modal, ModalHeader, ModalBody, ListGroup, ListGroupItem, Dropdown, DropdownHeader, DropdownItem, TextInput, Textarea, Tooltip  } from 'flowbite-react'
-import { useEffect, useState, useCallback } from 'react'
-import BooksService from '../services/books.service';
-import { RiStickyNoteLine } from "react-icons/ri";
-import { RiEyeLine } from "react-icons/ri";
-import { RiDeleteBin6Line } from "react-icons/ri";
-import NotesService from '../services/notes.service';
+import { Button, ButtonGroup, Modal, ModalHeader, ModalBody, ListGroup, ListGroupItem, Dropdown, DropdownHeader, DropdownItem, TextInput, Textarea, Tooltip  } from 'flowbite-react'  // React library import
+import { useEffect, useState, useCallback } from 'react'  // React library import
+import BooksService from '../services/books.service';  // Service layer import for API communication
+import { RiStickyNoteLine } from "react-icons/ri";  // React library import
+import { RiEyeLine } from "react-icons/ri";  // React library import
+import { RiDeleteBin6Line } from "react-icons/ri";  // React library import
+import NotesService from '../services/notes.service';  // Service layer import for API communication
 import useToast from '../toast/useToast';
-import { RiErrorWarningLine } from "react-icons/ri";
+import { RiErrorWarningLine } from "react-icons/ri";  // React library import
 
 function NotesView(props) {
-    const [notes, setNotes] = useState();
-    const [selectedNote, setSelectedNote] = useState();
-    const [removalConfModal, setRemovalConfModal] = useState();
-    const [creationMode, setCreationMode] = useState(false);
-    const [quoteCreationMode, setQuoteCreationMode] = useState(false);
-    const [newNote, setNewNote] = useState();
-    const [newQuotePage, setNewQuotePage] = useState();
-    const [filter, setFilter] = useState("all");
+    const [notes, setNotes] = useState();  // React state hook for component state management
+    const [selectedNote, setSelectedNote] = useState();  // React state hook for component state management
+    const [removalConfModal, setRemovalConfModal] = useState();  // React state hook for component state management
+    const [creationMode, setCreationMode] = useState(false);  // React state hook for component state management
+    const [quoteCreationMode, setQuoteCreationMode] = useState(false);  // React state hook for component state management
+    const [newNote, setNewNote] = useState();  // React state hook for component state management
+    const [newQuotePage, setNewQuotePage] = useState();  // React state hook for component state management
+    const [filter, setFilter] = useState("all");  // React state hook for component state management
 
     const toast = useToast(4000);
 
     const getNotes = useCallback(() => {
         if(props.overrideNotes) {
-            setNotes(props.overrideNotes)
-            setSelectedNote(props.overrideNotes[0])
+            setNotes(props.overrideNotes)  // State update
+            setSelectedNote(props.overrideNotes[0])  // State update
         } else {
             BooksService.notes(props.id).then(
                 response => {
-                    setNotes(response.data.notes)
-                    setSelectedNote(response.data.notes[0])
+                    setNotes(response.data.notes)  // State update
+                    setSelectedNote(response.data.notes[0])  // State update
                 },
                 error => {
                     const resMessage =
@@ -43,7 +43,7 @@ function NotesView(props) {
         }
     }, [props.overrideNotes, props.id, toast])
 
-    useEffect(() => {
+    useEffect(() => {  // React effect hook for side effects
         if(props.open) {
             getNotes()
         }
@@ -83,7 +83,7 @@ function NotesView(props) {
                 toast("error", resMessage);
             }
         )
-        setRemovalConfModal(false);
+        setRemovalConfModal(false);  // State update
     }
 
     const addNote = () => {
@@ -91,10 +91,10 @@ function NotesView(props) {
             response => {
                 toast("success", response.data.message)
                 getNotes();
-                setCreationMode(false);
-                setQuoteCreationMode(false);
-                setNewQuotePage();
-                setNewNote();
+                setCreationMode(false);  // State update
+                setQuoteCreationMode(false);  // State update
+                setNewQuotePage();  // State update
+                setNewNote();  // State update
             },
             error => {
                 const resMessage =
@@ -104,18 +104,18 @@ function NotesView(props) {
                     error.message ||
                     error.toString();
                 toast("error", resMessage);
-                setCreationMode(false);
-                setQuoteCreationMode(false);
-                setNewQuotePage();
-                setNewNote();
+                setCreationMode(false);  // State update
+                setQuoteCreationMode(false);  // State update
+                setNewQuotePage();  // State update
+                setNewNote();  // State update
             }
         )
     }
 
     const listNotes = (item) => {
-        return (
+        return (  // JSX return statement
             item &&
-            <ListGroupItem active={item.id == selectedNote.id} icon={RiStickyNoteLine} onClick={() => (setSelectedNote(item), setCreationMode(false), setQuoteCreationMode(false))}>
+            <ListGroupItem active={item.id == selectedNote.id} icon={RiStickyNoteLine} onClick={() => (setSelectedNote(item), setCreationMode(false), setQuoteCreationMode(false))}>  // Event handler assignment
                 <div className="flex flex-col gap-2 items-start">
                     <div>
                         {new Date(item.created_at).toLocaleDateString("en-US", {year: 'numeric', month: 'long', day: 'numeric'})}
@@ -138,7 +138,7 @@ function NotesView(props) {
         )
     };
     
-    return (
+    return (  // JSX return statement
         <>
         <Modal size={"5xl"} position={"top-center"} show={props.open} onClose={() => props.close(false)}>
         <ModalHeader className="border-gray-200">Notes & Quotes</ModalHeader>
@@ -148,13 +148,13 @@ function NotesView(props) {
                     <div>
                         <div className="flex flex-col gap-4">
                         <ButtonGroup>
-                            <Button color="alternative" onClick={() => setFilter("all")} className={`${filter == "all" ? 'text-cyan-700' : 'text-gray-900'}`}>All</Button>
-                            <Button color="alternative" onClick={() => setFilter("notes")} className={`${filter == "notes" ? 'text-cyan-700' : 'text-gray-900'}`}>Notes</Button>
-                            <Button color="alternative" onClick={() => setFilter("quotes")} className={`${filter == "quotes" ? 'text-cyan-700' : 'text-gray-900'}`}>Quotes</Button>
+                            <Button color="alternative" onClick={() => setFilter("all")} className={`${filter == "all" ? 'text-cyan-700' : 'text-gray-900'}`}>All</Button>  // Event handler assignment
+                            <Button color="alternative" onClick={() => setFilter("notes")} className={`${filter == "notes" ? 'text-cyan-700' : 'text-gray-900'}`}>Notes</Button>  // Event handler assignment
+                            <Button color="alternative" onClick={() => setFilter("quotes")} className={`${filter == "quotes" ? 'text-cyan-700' : 'text-gray-900'}`}>Quotes</Button>  // Event handler assignment
                         </ButtonGroup>
                         <ListGroup className="w-full">
                             {notes?.map((item) => {
-                                return (
+                                return (  // JSX return statement
                                     (item?.id &&
                                         filter == "quotes" ? (
                                             item?.quote_page && (
@@ -173,8 +173,8 @@ function NotesView(props) {
                         </ListGroup>
                         {props.allowEditing &&
                             <div className="flex flex-row gap-2 justify-between">
-                                <Button color="alternative" onClick={() => (setCreationMode(true), setQuoteCreationMode(false))}>Add note</Button>
-                                <Button color="alternative" onClick={() => (setCreationMode(true), setQuoteCreationMode(true))}>Add quote</Button>
+                                <Button color="alternative" onClick={() => (setCreationMode(true), setQuoteCreationMode(false))}>Add note</Button>  // Event handler assignment
+                                <Button color="alternative" onClick={() => (setCreationMode(true), setQuoteCreationMode(true))}>Add quote</Button>  // Event handler assignment
                             </div>
                         }
                         </div>
@@ -189,8 +189,8 @@ function NotesView(props) {
                                     <p>There does not seem to be any notes or quotes for this book.</p>
                                 </div>
                                 <div className="inline-flex gap-4">
-                                    <Button onClick={() => setCreationMode(true)}>Add note</Button>
-                                    <Button onClick={() => (setCreationMode(true), setQuoteCreationMode(true))}>Add quote</Button>
+                                    <Button onClick={() => setCreationMode(true)}>Add note</Button>  // Event handler assignment
+                                    <Button onClick={() => (setCreationMode(true), setQuoteCreationMode(true))}>Add quote</Button>  // Event handler assignment
                                 </div>
                             </div>
                         </div>
@@ -219,11 +219,11 @@ function NotesView(props) {
                                             <p>Add note</p>
                                         )}
                                     </div>
-                                    <Textarea required autoFocus rows={6} value={newNote} onChange={(e) => setNewNote(e.target.value)}/>
+                                    <Textarea required autoFocus rows={6} value={newNote} onChange={(e) => setNewNote(e.target.value)}/>  // Event handler assignment
                                     {quoteCreationMode &&
                                         <div className="flex flex-col gap-2">
                                             <p className="format dark:format-invert">Page:</p>
-                                            <TextInput  type='number' required value={newQuotePage} onChange={(e) => setNewQuotePage(e.target.value)}/>
+                                            <TextInput  type='number' required value={newQuotePage} onChange={(e) => setNewQuotePage(e.target.value)}/>  // Event handler assignment
                                         </div>
                                     }
                                     </>
@@ -235,12 +235,12 @@ function NotesView(props) {
                                     <Tooltip content="Change visibility">
                                         <Dropdown color="alternative" label={<RiEyeLine className="h-5 w-5"/>}>
                                             <DropdownHeader>Change visibility</DropdownHeader>
-                                            <DropdownItem onClick={() => changeVisibility("hidden")}>Hidden</DropdownItem>
-                                            <DropdownItem onClick={() => changeVisibility("public")}>Public</DropdownItem>
+                                            <DropdownItem onClick={() => changeVisibility("hidden")}>Hidden</DropdownItem>  // Event handler assignment
+                                            <DropdownItem onClick={() => changeVisibility("public")}>Public</DropdownItem>  // Event handler assignment
                                         </Dropdown>
                                     </Tooltip>
                                     <Tooltip content="Remove">
-                                        <Button className="hover:cursor-pointer" color="red" onClick={() => setRemovalConfModal(true)}>
+                                        <Button className="hover:cursor-pointer" color="red" onClick={() => setRemovalConfModal(true)}>  // Event handler assignment
                                             <RiDeleteBin6Line className="h-5 w-5" />
                                         </Button>
                                     </Tooltip>
@@ -248,8 +248,8 @@ function NotesView(props) {
                                 ): (
                                     (creationMode &&
                                     <>
-                                    <Button color="gray" onClick={() => (setCreationMode(false), setQuoteCreationMode(false), setNewNote())}>Cancel</Button>
-                                    <Button onClick={() => addNote()}>Save</Button>
+                                    <Button color="gray" onClick={() => (setCreationMode(false), setQuoteCreationMode(false), setNewNote())}>Cancel</Button>  // Event handler assignment
+                                    <Button onClick={() => addNote()}>Save</Button>  // Event handler assignment
                                     </>
                                     )
                                 )}
@@ -270,10 +270,10 @@ function NotesView(props) {
                 Are you sure you want to remove this note?
                 </h3>
                 <div className="flex justify-center gap-4">
-                <Button color="red" onClick={() => removeNote()}>
+                <Button color="red" onClick={() => removeNote()}>  // Event handler assignment
                     {"Yes, I'm sure"}
                 </Button>
-                <Button color="light" onClick={() => setRemovalConfModal(false)}>
+                <Button color="light" onClick={() => setRemovalConfModal(false)}>  // Event handler assignment
                     {"No, cancel"}
                 </Button>
                 </div>
@@ -290,4 +290,4 @@ NotesView.defaultProps = {
     allowEditing: true,
 }
 
-export default NotesView
+export default NotesView  // Export for use in other modules

@@ -15,129 +15,161 @@ The application uses JWT for authentication and supports PostgreSQL as the
 primary database.
 """
 
-from flask import Flask, jsonify, request
-from flask_jwt_extended import JWTManager, jwt_required
-from flask_cors import CORS
-from config import Config
-from flask_migrate import Migrate
-from db import db, ma
-from routes.books import books_endpoint
-from routes.profiles import profiles_endpoint
-from routes.notes import notes_endpoint
-from routes.tasks import tasks_endpoint
-from routes.files import files_endpoint
-from routes.settings import settings_endpoint
-from flasgger import Swagger
-from auth.auth_route import auth_endpoint
-from auth.user_route import user_endpoint
-from commands.tasks import tasks_command
-from commands.user import user_command
-from commands.db_check import db_check_command
-from pathlib import Path
-import os
-import logging
-from datetime import datetime
-from typing import Dict, Any, Tuple, Union
+  # Import Flask core components for web application functionality
+from flask import Flask, jsonify, request  # Flask: main app class, jsonify: JSON responses, request: HTTP request data
+from flask_jwt_extended import JWTManager, jwt_required  # JWT token management for user authentication
+from flask_cors import CORS  # Cross-Origin Resource Sharing - allows frontend to connect to backend
+from config import Config  # Application configuration settings (database, JWT, etc.)
+from flask_migrate import Migrate  # Database migration management for schema changes
+from db import db, ma  # Database instance (SQLAlchemy) and Marshmallow for JSON serialization
 
-try:
-    import tomllib
-except ImportError:
-    try:
-        import tomli as tomllib
-    except ImportError:
-        tomllib = None
+  # Import all API route blueprints (groups of related endpoints)
+from routes.books import books_endpoint  # Book management endpoints (add, edit, delete books)
+from routes.profiles import profiles_endpoint  # User profile management endpoints
+from routes.notes import notes_endpoint  # Book notes and annotations endpoints
+from routes.tasks import tasks_endpoint  # Background task management endpoints
+from routes.files import files_endpoint  # File upload/download endpoints
+from routes.settings import settings_endpoint  # User settings management endpoints
 
-app = Flask(__name__)
+  # Import API documentation and authentication
+from flasgger import Swagger  # Automatic API documentation generation
+from auth.auth_route import auth_endpoint  # Authentication endpoints (login, register, logout)
+from auth.user_route import user_endpoint  # User management endpoints
 
-# Configure CORS with environment-based origins
-def get_cors_origins():
-    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
-    origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
-    # Add localhost for development
+  # Import command-line interface commands
+from commands.tasks import tasks_command  # CLI commands for task management
+from commands.user import user_command  # CLI commands for user management
+from commands.db_check import db_check_command  # CLI commands for database health checks
+
+  # Import standard Python libraries
+from pathlib import Path  # Modern path handling for file operations
+import os  # Operating system interface for environment variables
+import logging  # Application logging for debugging and monitoring
+from datetime import datetime  # Date and time handling
+from typing import Dict, Any, Tuple, Union  # Type hints for better code documentation
+
+  # Try to import TOML parser for configuration files (handles different Python versions)
+try:  # Exception handling block
+    import tomllib  # Python 3.11+ built-in TOML parser
+except ImportError:  # Exception handler
+    try:  # Exception handling block
+        import tomli as tomllib  # Fallback TOML parser for older Python versions
+    except ImportError:  # Exception handler
+        tomllib = None  # No TOML support available
+
+  # Create the main Flask application instance
+  # __name__ tells Flask where to find resources like templates and static files
+app = Flask(__name__)  # Flask application instance
+
+  # Configure CORS (Cross-Origin Resource Sharing) to allow frontend to connect to backend
+def get_cors_origins():  # Getter method for cors_origins
+    """Get allowed origins from environment variable with development fallbacks"""
+    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")  # Get comma-separated origins from environment
+    origins = []
+    
+    # Parse origins and handle wildcards
+    for origin in allowed_origins_str.split(","):
+        origin = origin.strip()
+        if origin:
+            # Handle Vercel wildcard pattern
+            if origin == "https://*.vercel.app":
+                # For Flask-CORS, we'll handle this in the origin callback
+                origins.append(origin)
+            else:
+                origins.append(origin)
+    
+    # Add localhost addresses for development if no origins specified or not in production
     if not origins or os.getenv("FLASK_ENV") != "production":
+        # Common development server addresses (React dev server, Vite, etc.)
         origins.extend(["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"])
+    
     return origins
 
+def cors_origin_handler(origin):
+    """Custom origin handler to support wildcards"""
+    allowed_origins = get_cors_origins()
+    
+    # Check exact matches first
+    if origin in allowed_origins:
+        return True
+    
+    # Check wildcard patterns
+    if origin and origin.endswith('.vercel.app'):
+        # Allow any Vercel deployment
+        return True
+    
+    # Allow localhost in development
+    if origin and ('localhost' in origin or '127.0.0.1' in origin):
+        return True
+    
+    return False
+
+  # Configure CORS with specific settings and custom origin handler
 CORS(app, 
-     origins=get_cors_origins(),
-     supports_credentials=True,
-     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
-     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
+     origins=cors_origin_handler,  # Custom function to handle wildcard origins
+     supports_credentials=True,  # Allow cookies and authentication headers
+     allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],  # Allowed HTTP headers
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])  # Allowed HTTP methods
 
-# Configure logging for production
-if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":
+  # Configure application logging based on environment
+if os.getenv("FLASK_ENV") == "production" or os.getenv("RENDER") == "true":  # Production environment
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s %(levelname)s %(name)s %(message)s'
+        level=logging.INFO,  # Only log INFO level and above (less verbose)
+        format='%(asctime)s %(levelname)s %(name)s %(message)s'  # Structured log format with timestamp
     )
-    app.logger.setLevel(logging.INFO)
-else:
-    logging.basicConfig(level=logging.DEBUG)
-    app.logger.setLevel(logging.DEBUG)
+    app.logger.setLevel(logging.INFO)  # Set Flask app logger to INFO level
+else:  # Development environment
+    logging.basicConfig(level=logging.DEBUG)  # Log DEBUG level and above (more verbose)
+    app.logger.setLevel(logging.DEBUG)  # Set Flask app logger to DEBUG level
+
+  # Load application configuration from Config class
+app.config.from_object(Config())  # Loads database settings, JWT config, file upload limits, etc.
+
+  # Initialize Flask extensions with the app instance
+swagger = Swagger(app)  # Initialize Swagger for automatic API documentation
+db.init_app(app)  # Initialize SQLAlchemy database connection
+ma.init_app(app)  # Initialize Marshmallow for JSON serialization/deserialization
+migrate = Migrate(app, db)  # Initialize Flask-Migrate for database schema migrations
+jwt = JWTManager(app)  # Initialize JWT token management for authentication
 
 
-
-# Load configuration
-app.config.from_object(Config())
-
-# Init extensions
-swagger = Swagger(app)
-db.init_app(app)
-ma.init_app(app)
-migrate = Migrate(app, db)
-jwt = JWTManager(app)
-
-
+  # JWT token blacklist checker - prevents use of revoked tokens after logout
 @jwt.token_in_blocklist_loader
 def check_if_token_revoked(jwt_header, jwt_payload):
-    from auth.models import RevokedTokenModel
-    return RevokedTokenModel.is_jti_blacklisted(jwt_payload["jti"])
+    """Check if a JWT token has been revoked (blacklisted) after logout"""
+    from auth.models import RevokedTokenModel  # Import token blacklist model
+    return RevokedTokenModel.is_jti_blacklisted(jwt_payload["jti"])  # Check if token ID is blacklisted
 
-
-@app.after_request
-def after_request(response):
-    # Security headers for production
-    is_production = (os.getenv("RENDER") == "true" or
-                     os.getenv("FLASK_ENV") == "production")
+  # Add security headers to every response (CORS is now handled by Flask-CORS extension)
+@app.after_request  # Flask application decorator
+def after_request(response):  # Function: after_request
+    """Add security headers to all responses"""
+  # Determine if running in production environment
+    is_production = (os.getenv("RENDER") == "true" or  # Render.com deployment
+                     os.getenv("FLASK_ENV") == "production")  # Production environment flag
     
-    # Get allowed origins from environment variable
-    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
-    allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+  # Add caching headers for different types of API responses
+    if request.endpoint and request.method == 'GET':  # Only for GET requests with defined endpoints
+        if request.endpoint in ['health_check', 'index']:  # Health check and index endpoints
+            response.headers['Cache-Control'] = 'public, max-age=300'  # Cache publicly for 5 minutes
+        elif '/v1/books/stats' in request.path:  # Book statistics endpoint
+            response.headers['Cache-Control'] = 'private, max-age=60'  # Cache privately for 1 minute
+        else:  # All other endpoints
+            response.headers['Cache-Control'] = 'private, no-cache, no-store, must-revalidate'  # No caching
     
-    # Always add CORS headers for better compatibility
-    origin = request.headers.get('Origin')
-    if origin:
-        # Check if origin is in allowed origins or matches Vercel pattern
-        if (origin in allowed_origins or 
-                origin.endswith('.vercel.app') or
-                any('.vercel.app' in str(allowed_origin) for allowed_origin in allowed_origins)):
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-            response.headers['Access-Control-Max-Age'] = '86400'
-    
-    # Add caching headers for API responses
-    if request.endpoint and request.method == 'GET':
-        if request.endpoint in ['health_check', 'index']:
-            response.headers['Cache-Control'] = 'public, max-age=300'  # 5 minutes
-        elif '/v1/books/stats' in request.path:
-            response.headers['Cache-Control'] = 'private, max-age=60'  # 1 minute
-        else:
-            response.headers['Cache-Control'] = 'private, no-cache, no-store, must-revalidate'
-    
+  # Add security headers in production or when debug is disabled
     if is_production or not app.debug:
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Strict-Transport-Security'] = (
-            'max-age=31536000; includeSubDomains'
+        response.headers['X-Content-Type-Options'] = 'nosniff'  # Prevent MIME type sniffing attacks
+        response.headers['X-Frame-Options'] = 'DENY'  # Prevent clickjacking by denying iframe embedding
+        response.headers['X-XSS-Protection'] = '1; mode=block'  # Enable XSS filtering in browsers
+        response.headers['Strict-Transport-Security'] = (  # Force HTTPS connections
+            'max-age=31536000; includeSubDomains'  # 1 year duration, include subdomains
         )
-        response.headers['Referrer-Policy'] = (
-            'strict-origin-when-cross-origin'
+        response.headers['Referrer-Policy'] = (  # Control referrer information sent
+            'strict-origin-when-cross-origin'  # Only send origin when crossing origins
         )
         
-        # Additional production headers
+  # Additional production headers
         response.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
@@ -157,12 +189,12 @@ def after_request(response):
 if not os.path.exists(os.getenv("EXPORT_FOLDER", "export_data")):
     os.makedirs(os.getenv("EXPORT_FOLDER", "export_data"))
 
-# Register CLI commands
+  # Register CLI commands
 app.cli.add_command(tasks_command)
 app.cli.add_command(user_command)
 app.cli.add_command(db_check_command)
 
-# Register API routes
+  # Register API routes
 app.register_blueprint(books_endpoint)
 app.register_blueprint(profiles_endpoint)
 app.register_blueprint(notes_endpoint)
@@ -173,24 +205,7 @@ app.register_blueprint(auth_endpoint)
 app.register_blueprint(user_endpoint)
 
 
-@app.before_request
-def handle_preflight():
-    if request.method == "OPTIONS":
-        # Get allowed origins from environment variable
-        allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
-        allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
-        
-        origin = request.headers.get('Origin')
-        if origin and (origin in allowed_origins or 
-                      origin.endswith('.vercel.app') or
-                      any('.vercel.app' in str(allowed_origin) for allowed_origin in allowed_origins)):
-            response = jsonify({})
-            response.headers['Access-Control-Allow-Origin'] = origin
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-            response.headers['Access-Control-Max-Age'] = '86400'
-            return response
+# Removed manual preflight handling - Flask-CORS extension handles this automatically
 
 
 @app.errorhandler(404)
@@ -255,6 +270,15 @@ def too_many_requests(error):
         'message': 'Rate limit exceeded. Please try again later.'
     }), 429
 
+
+@app.route("/health")
+def health_check() -> Dict[str, Any]:
+    """Health check endpoint for monitoring and connection testing"""
+    return {
+        "status": "healthy",
+        "message": "BookVault API is running",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @app.route("/")
 def index() -> Dict[str, Any]:
@@ -327,13 +351,13 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
         }
         status["database"] = database_info
         
-        # Add connection pool info if available
+  # Add connection pool info if available
         if hasattr(db.engine, "pool"):
             try:
                 pool = db.engine.pool
                 pool_info: Dict[str, Any] = {}
                 
-                # Safely get pool size
+  # Safely get pool size
                 if hasattr(pool, 'size') and callable(getattr(pool, 'size')):
                     pool_info["size"] = getattr(pool, 'size')()
                 elif hasattr(pool, 'size'):
@@ -341,7 +365,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 else:
                     pool_info["size"] = 0
                 
-                # Safely get checked out connections
+  # Safely get checked out connections
                 if (hasattr(pool, 'checkedout') and
                         callable(getattr(pool, 'checkedout'))):
                     pool_info["checked_out"] = getattr(pool, 'checkedout')()
@@ -350,7 +374,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 else:
                     pool_info["checked_out"] = 0
                 
-                # Get overflow if available
+  # Get overflow if available
                 pool_info["overflow"] = getattr(pool, 'overflow', 0)
                 
                 status["database"]["pool"] = pool_info
@@ -358,7 +382,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 app.logger.debug(f"Could not get pool info: {pool_error}")
                 status["database"]["pool"] = {"error": "Pool info unavailable"}
             
-        # Warn if connection is slow
+  # Warn if connection is slow
         if connection_time > 1000:  # 1 second
             status["database"]["warning"] = "Slow database connection"
             
@@ -381,7 +405,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
         status["jwt"] = "unhealthy"
         status["status"] = "degraded"
 
-    # Check required environment variables
+  # Check required environment variables
     required_vars = ["AUTH_SECRET_KEY", "DATABASE_URL"]
     missing = [v for v in required_vars if not os.getenv(v)]
     if missing:
@@ -438,18 +462,18 @@ def initialize_database() -> None:
             )
 
         with app.app_context():
-            # Test database connection
+  # Test database connection
             db.session.execute(db.text("SELECT 1"))
             
-            # Create all tables
+  # Create all tables
             db.create_all()
             
-            # Log database info
+  # Log database info
             result = db.session.execute(db.text("SELECT version()"))
             db_version = result.scalar()
             app.logger.info(f"Database connected successfully: {db_version}")
             
-            # Check if we have any users (for monitoring)
+  # Check if we have any users (for monitoring)
             from models import User
             user_count = User.query.count()
             app.logger.info(
@@ -463,8 +487,8 @@ def initialize_database() -> None:
         raise
 
 
-# Skip database initialization during import to avoid Gunicorn worker issues
-# Database will be initialized by Flask-Migrate during deployment
+  # Skip database initialization during import to avoid Gunicorn worker issues
+  # Database will be initialized by Flask-Migrate during deployment
 if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT") and __name__ == "__main__":
     prod = (os.getenv("RENDER") == "true" or
             os.getenv("FLASK_ENV") == "production")
@@ -486,7 +510,7 @@ if os.getenv("DATABASE_URL") and not os.getenv("SKIP_DB_INIT") and __name__ == "
                         f"Database initialization failed after {max_retries} "
                         f"attempts: {e}"
                     )
-                    # Don't raise in production, let Flask-Migrate handle it
+  # Don't raise in production, let Flask-Migrate handle it
                     app.logger.warning("Continuing without DB init, Flask-Migrate will handle it")
                 else:
                     app.logger.warning(

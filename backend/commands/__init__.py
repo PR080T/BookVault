@@ -14,7 +14,7 @@ from .tasks import tasks_command
 from .db_check import db_check_command
 
 
-def register_cli_commands(app):
+def register_cli_commands(app):  # Function: register_cli_commands
     """
     Register all CLI commands with the Flask app.
     """

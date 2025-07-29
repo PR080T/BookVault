@@ -99,7 +99,7 @@ function UpdateReadingStatusButton(props) {
                     </div>
                 </ModalBody>
                 <ModalFooter className="flex justify-center gap-4">
-                    <Button as={Link} to={"https:  // mastodonshare.com/?text=I just finished reading " + props.title  + " 📖&url=https:
+                    <Button as={Link} to={"https:  // mastodonshare.com/?text=I just finished reading " + props.title  + " 📖&url=https://book-vault-pi.vercel.app"}
                         <RiMastodonFill className="mr-2 h-5 w-5" />
                         Share on Mastodon
                     </Button>

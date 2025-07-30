@@ -71,12 +71,7 @@ def get_cors_origins():  # Getter method for cors_origins
     for origin in allowed_origins_str.split(","):
         origin = origin.strip()
         if origin:
-            # Handle Vercel wildcard pattern
-            if origin == "https://*.vercel.app":
-                # For Flask-CORS, we'll handle this in the origin callback
-                origins.append(origin)
-            else:
-                origins.append(origin)
+            origins.append(origin)
     
     # Add localhost addresses for development if no origins specified or not in production
     if not origins or os.getenv("FLASK_ENV") != "production":
@@ -85,40 +80,12 @@ def get_cors_origins():  # Getter method for cors_origins
     
     return origins
 
-def cors_origin_handler(origin):
-    """Custom origin handler to support wildcards"""
-    allowed_origins = get_cors_origins()
-    
-    # Log origin for debugging
-    app.logger.info(f"CORS check for origin: {origin}")
-    
-    # Check exact matches first
-    if origin in allowed_origins:
-        app.logger.info(f"Origin allowed (exact match): {origin}")
-        return True
-    
-    # Check wildcard patterns
-    if origin and origin.endswith('.vercel.app'):
-        # Allow any Vercel deployment
-        app.logger.info(f"Origin allowed (Vercel): {origin}")
-        return True
-    
-    # Allow localhost in development
-    if origin and ('localhost' in origin or '127.0.0.1' in origin):
-        app.logger.info(f"Origin allowed (localhost): {origin}")
-        return True
-    
-    # Allow null origin for direct API access
-    if origin is None:
-        app.logger.info("Origin allowed (null/direct access)")
-        return True
-    
-    app.logger.warning(f"Origin blocked: {origin}")
-    return False
+  # Configure CORS with specific settings - use list of origins instead of function
+cors_origins = get_cors_origins()
+app.logger.info(f"CORS origins configured: {cors_origins}")
 
-  # Configure CORS with specific settings and custom origin handler
 CORS(app, 
-     origins=cors_origin_handler,  # Custom function to handle wildcard origins
+     origins=cors_origins,  # List of allowed origins
      supports_credentials=True,  # Allow cookies and authentication headers
      allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],  # Allowed HTTP headers
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])  # Allowed HTTP methods
@@ -152,10 +119,26 @@ def check_if_token_revoked(jwt_header, jwt_payload):
     from auth.models import RevokedTokenModel  # Import token blacklist model
     return RevokedTokenModel.is_jti_blacklisted(jwt_payload["jti"])  # Check if token ID is blacklisted
 
+  # Request logging middleware
+@app.before_request
+def log_request_info():
+    """Log request information for debugging"""
+    if app.debug or os.getenv("FLASK_ENV") == "development":
+        app.logger.debug(f"Request: {request.method} {request.path}")
+        app.logger.debug(f"Headers: {dict(request.headers)}")
+        if request.method in ['POST', 'PUT', 'PATCH'] and request.is_json:
+            app.logger.debug(f"JSON data: {request.get_json()}")
+
   # Add security headers to every response (CORS is now handled by Flask-CORS extension)
 @app.after_request  # Flask application decorator
 def after_request(response):  # Function: after_request
     """Add security headers to all responses"""
+    # Log response status for debugging
+    if response.status_code >= 400:
+        app.logger.warning(f"Response: {request.method} {request.path} -> {response.status_code}")
+    elif app.debug or os.getenv("FLASK_ENV") == "development":
+        app.logger.debug(f"Response: {request.method} {request.path} -> {response.status_code}")
+    
   # Determine if running in production environment
     is_production = (os.getenv("RENDER") == "true" or  # Render.com deployment
                      os.getenv("FLASK_ENV") == "production")  # Production environment flag
@@ -272,6 +255,14 @@ def too_many_requests(error):
     }), 429
 
 
+
+
+@app.route("/favicon.ico")
+def favicon():
+    """Handle favicon requests to prevent 404 errors"""
+    from flask import abort
+    # Return 204 No Content for favicon requests
+    return '', 204
 
 
 @app.route("/")
@@ -462,11 +453,40 @@ def method_not_allowed(error):
 
 @app.errorhandler(500)
 def internal_server_error(error):
+    import traceback
+    
+    # Log the full error details
     app.logger.error(f'Internal server error: {error}')
-    return jsonify({
+    app.logger.error(f'Request path: {request.path}')
+    app.logger.error(f'Request method: {request.method}')
+    app.logger.error(f'Request args: {request.args}')
+    app.logger.error(f'Traceback: {traceback.format_exc()}')
+    
+    # Try to rollback any pending database transactions
+    try:
+        db.session.rollback()
+    except Exception as db_error:
+        app.logger.error(f'Failed to rollback database session: {db_error}')
+    
+    # Return appropriate response based on environment
+    is_debug = os.getenv("FLASK_ENV") == "development" or app.debug
+    
+    response_data = {
         'error': 'Internal Server Error',
-        'message': 'An unexpected error occurred. Please try again later.'
-    }), 500
+        'message': 'An unexpected error occurred. Please try again later.',
+        'path': request.path,
+        'method': request.method
+    }
+    
+    # Add debug information in development
+    if is_debug:
+        response_data['debug'] = {
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'traceback': traceback.format_exc().split('\n')
+        }
+    
+    return jsonify(response_data), 500
 
 
 @app.errorhandler(503)
@@ -475,6 +495,33 @@ def service_unavailable(error):
         'error': 'Service Unavailable',
         'message': 'The service is temporarily unavailable. Please try again later.'
     }), 503
+
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """Handle any unhandled exceptions"""
+    import traceback
+    
+    # Log the exception
+    app.logger.error(f'Unhandled exception: {error}')
+    app.logger.error(f'Exception type: {type(error).__name__}')
+    app.logger.error(f'Request path: {request.path}')
+    app.logger.error(f'Request method: {request.method}')
+    app.logger.error(f'Full traceback: {traceback.format_exc()}')
+    
+    # Try to rollback any pending database transactions
+    try:
+        db.session.rollback()
+    except Exception as db_error:
+        app.logger.error(f'Failed to rollback database session: {db_error}')
+    
+    # Return 500 error
+    return jsonify({
+        'error': 'Internal Server Error',
+        'message': 'An unexpected error occurred. Please try again later.',
+        'path': request.path,
+        'method': request.method
+    }), 500
 
 
 def initialize_database() -> None:
@@ -486,28 +533,51 @@ def initialize_database() -> None:
             )
 
         with app.app_context():
-  # Test database connection
-            db.session.execute(db.text("SELECT 1"))
+            # Test database connection with timeout
+            try:
+                db.session.execute(db.text("SELECT 1"))
+                app.logger.info("Database connection test successful")
+            except Exception as conn_error:
+                app.logger.error(f"Database connection test failed: {conn_error}")
+                raise
             
-  # Create all tables
-            db.create_all()
+            # Create all tables
+            try:
+                db.create_all()
+                app.logger.info("Database tables created/verified successfully")
+            except Exception as table_error:
+                app.logger.error(f"Database table creation failed: {table_error}")
+                raise
             
-  # Log database info
-            result = db.session.execute(db.text("SELECT version()"))
-            db_version = result.scalar()
-            app.logger.info(f"Database connected successfully: {db_version}")
+            # Log database info
+            try:
+                result = db.session.execute(db.text("SELECT version()"))
+                db_version = result.scalar()
+                app.logger.info(f"Database connected successfully: {db_version}")
+            except Exception as version_error:
+                app.logger.warning(f"Could not get database version: {version_error}")
             
-  # Check if we have any users (for monitoring)
-            from models import User
-            user_count = User.query.count()
-            app.logger.info(
-                f"Database initialized. Users in system: {user_count}"
-            )
+            # Check if we have any users (for monitoring)
+            try:
+                from models import User
+                user_count = User.query.count()
+                app.logger.info(f"Database initialized. Users in system: {user_count}")
+            except Exception as user_error:
+                app.logger.warning(f"Could not count users: {user_error}")
             
     except Exception as e:
+        import traceback
         app.logger.error(f"Database initialization failed: {e}")
+        app.logger.error(f"Full traceback: {traceback.format_exc()}")
         db_configured = 'Yes' if os.getenv('DATABASE_URL') else 'No'
         app.logger.error(f"DATABASE_URL configured: {db_configured}")
+        
+        # Try to close any open connections
+        try:
+            db.session.close()
+        except:
+            pass
+            
         raise
 
 
@@ -554,12 +624,45 @@ def init_database_if_needed():
                     delay = min(delay * 1.5, 30)
     return True
 
+# Startup health check
+def startup_health_check():
+    """Perform startup health checks"""
+    try:
+        with app.app_context():
+            # Check if basic routes are registered
+            routes = [str(rule) for rule in app.url_map.iter_rules()]
+            app.logger.info(f"Application started with {len(routes)} routes")
+            
+            # Check if favicon route is registered
+            favicon_routes = [r for r in routes if 'favicon' in r]
+            if favicon_routes:
+                app.logger.info(f"Favicon route registered: {favicon_routes}")
+            else:
+                app.logger.warning("Favicon route not found")
+            
+            # Check database connection if configured
+            if os.getenv('DATABASE_URL'):
+                try:
+                    db.session.execute(db.text("SELECT 1"))
+                    app.logger.info("Startup database connection test passed")
+                except Exception as db_error:
+                    app.logger.error(f"Startup database connection test failed: {db_error}")
+            
+            app.logger.info("Startup health check completed")
+            return True
+            
+    except Exception as e:
+        app.logger.error(f"Startup health check failed: {e}")
+        return False
+
 # Only run database initialization when script is run directly, not during import
 if __name__ == "__main__":
     init_database_if_needed()
+    startup_health_check()
 
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV') == 'development'
+    app.logger.info(f"Starting Flask development server on port {port}, debug={debug}")
     app.run(host='0.0.0.0', port=port, debug=debug)

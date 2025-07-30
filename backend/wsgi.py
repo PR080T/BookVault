@@ -25,22 +25,39 @@ def create_application():  # Function: create_application
         os.environ.setdefault('FLASK_ENV', 'production')
         os.environ.setdefault('FLASK_DEBUG', 'false')
         
+        # Log environment info
+        logger.info(f"Starting application with environment: {os.getenv('FLASK_ENV', 'unknown')}")
+        logger.info(f"DATABASE_URL configured: {'Yes' if os.getenv('DATABASE_URL') else 'No'}")
+        logger.info(f"AUTH_SECRET_KEY configured: {'Yes' if os.getenv('AUTH_SECRET_KEY') else 'No'}")
+        
         # Import the main app
         from app import app
         logger.info("Successfully imported main application")
         
-        # Test that routes are registered
-        routes = [str(rule) for rule in app.url_map.iter_rules()]
-        logger.info(f"Registered {len(routes)} routes")
-        
-        # Log key routes for debugging
-        key_routes = [r for r in routes if any(endpoint in r for endpoint in ['/', '/health', '/v1/books'])]
-        logger.info(f"Key routes available: {key_routes}")
-        
-        # Verify app configuration
-        logger.info(f"App name: {app.name}")
-        logger.info(f"Debug mode: {app.debug}")
-        logger.info(f"Environment: {os.getenv('FLASK_ENV', 'unknown')}")
+        # Test basic app functionality
+        with app.app_context():
+            # Test that routes are registered
+            routes = [str(rule) for rule in app.url_map.iter_rules()]
+            logger.info(f"Registered {len(routes)} routes")
+            
+            # Log key routes for debugging
+            key_routes = [r for r in routes if any(endpoint in r for endpoint in ['/', '/health', '/v1/books', '/favicon.ico'])]
+            logger.info(f"Key routes available: {key_routes}")
+            
+            # Verify app configuration
+            logger.info(f"App name: {app.name}")
+            logger.info(f"Debug mode: {app.debug}")
+            logger.info(f"Environment: {os.getenv('FLASK_ENV', 'unknown')}")
+            
+            # Test database connection if configured
+            if os.getenv('DATABASE_URL'):
+                try:
+                    from db import db
+                    db.session.execute(db.text("SELECT 1"))
+                    logger.info("Database connection test successful")
+                except Exception as db_error:
+                    logger.warning(f"Database connection test failed: {db_error}")
+                    # Don't fail here, let the app handle it
         
         return app
         
@@ -63,6 +80,8 @@ def create_application():  # Function: create_application
         except Exception as e2:
             logger.error(f"Failed to import simple application: {e2}")
             logger.error(f"Simple app error details: {str(e2)}")
+            import traceback
+            logger.error(f"Simple app traceback: {traceback.format_exc()}")
             raise RuntimeError(f"Failed to start application: {e}")
 
   # Create the application

@@ -80,25 +80,37 @@ class Config:
     }
 
     def __init__(self):  # Special method: __init__
-  # Normalize Heroku-style DATABASE_URL
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Normalize Heroku-style DATABASE_URL
         db_url = os.environ.get(  # Database connection
             "DATABASE_URL",
             "postgresql://postgres:password@localhost:5432/bookvault"
         )
+        
+        logger.info(f"Original DATABASE_URL configured: {'Yes' if db_url else 'No'}")
+        
         if db_url.startswith("postgres://"):  # Conditional statement
             db_url = db_url.replace("postgres://", "postgresql://", 1)  # Database connection
+            logger.info("Converted postgres:// to postgresql://")
+            
         self.SQLALCHEMY_DATABASE_URI = db_url
+        logger.info(f"Final DATABASE_URI set: {db_url[:50]}..." if db_url else "No DATABASE_URI")
 
         is_production = (os.environ.get("RENDER") == "true" or
                          os.environ.get("FLASK_ENV") == "production")
+        
+        logger.info(f"Production mode: {is_production}")
 
-  # Engine options
+        # Engine options with better error handling
         self.SQLALCHEMY_ENGINE_OPTIONS = {
             'pool_pre_ping': True,
             'pool_recycle': 300 if is_production else 3600,
             'pool_timeout': 30 if is_production else 20,
             'pool_size': 10 if is_production else 3,
             'max_overflow': 15 if is_production else 5,
+            'echo': False,  # Set to True for SQL debugging
         }
 
         connect_args = {
@@ -116,7 +128,11 @@ class Config:
                     'sslmode': 'require',
                     'options': '-c statement_timeout=30000'
                 })
+                logger.info("Added production SSL and timeout settings")
             else:  # Default case
                 connect_args['sslmode'] = 'prefer'
+                logger.info("Added development SSL settings")
 
             self.SQLALCHEMY_ENGINE_OPTIONS['connect_args'] = connect_args
+        else:
+            logger.warning(f"Non-PostgreSQL database URL detected: {db_url[:20]}...")

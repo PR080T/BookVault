@@ -14,30 +14,43 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Custom CORS origin handler for fallback app
-def cors_origin_handler(origin):
-    """Custom origin handler to support wildcards for fallback app"""
-    logger.info(f"CORS check for origin: {origin}")
+# Configure CORS for fallback app with simple origins list
+def get_fallback_cors_origins():
+    """Get CORS origins for fallback app"""
+    origins = []
     
-    # Allow any Vercel deployment
-    if origin and origin.endswith('.vercel.app'):
-        logger.info(f"Allowing Vercel origin: {origin}")
-        return True
+    # Get origins from environment
+    allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+    for origin in allowed_origins_str.split(","):
+        origin = origin.strip()
+        if origin and origin != "https://*.vercel.app":  # Skip wildcard patterns
+            origins.append(origin)
     
-    # Allow localhost in development
-    if origin and ('localhost' in origin or '127.0.0.1' in origin):
-        logger.info(f"Allowing localhost origin: {origin}")
-        return True
+    # Add localhost for development
+    origins.extend([
+        "http://localhost:3000", 
+        "http://localhost:5173", 
+        "http://127.0.0.1:3000", 
+        "http://127.0.0.1:5173"
+    ])
     
-    logger.info(f"Blocking origin: {origin}")
-    return False
+    return origins
 
-# Configure CORS for fallback app
+fallback_origins = get_fallback_cors_origins()
+logger.info(f"Fallback CORS origins: {fallback_origins}")
+
 CORS(app, 
-     origins=cors_origin_handler,
+     origins=fallback_origins,
      supports_credentials=True,
      allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'])
+
+@app.route('/favicon.ico')
+def favicon():
+    """Handle favicon requests to prevent 404 errors"""
+    logger.info("Favicon endpoint accessed")
+    return '', 204
+
 
 @app.route('/')
 def index():

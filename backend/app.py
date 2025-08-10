@@ -61,6 +61,10 @@ except ImportError:  # Exception handler
   # __name__ tells Flask where to find resources like templates and static files
 app = Flask(__name__)  # Flask application instance
 
+
+# ✅ Enable CORS for your Vercel frontend
+CORS(app, resources={r"/*": {"origins": ["https://book-vault-pi.vercel.app"]}})
+
   # Configure CORS (Cross-Origin Resource Sharing) to allow frontend to connect to backend
 def get_cors_origins():  # Getter method for cors_origins
     """Get allowed origins from environment variable with development fallbacks"""
@@ -134,8 +138,14 @@ def log_request_info():
 def after_request(response):  # Function: after_request
     """Add security headers to all responses"""
     # Log response status for debugging
-    if response.status_code >= 400:
-        app.logger.warning(f"Response: {request.method} {request.path} -> {response.status_code}")
+    if response.status_code >= 500:
+        app.logger.error(f"Response: {request.method} {request.path} -> {response.status_code}")
+    elif response.status_code >= 400:
+        # Don't log 503 from health endpoint as warning since it's expected
+        if response.status_code == 503 and request.path == "/health":
+            app.logger.info(f"Response: {request.method} {request.path} -> {response.status_code} (service unhealthy)")
+        else:
+            app.logger.warning(f"Response: {request.method} {request.path} -> {response.status_code}")
     elif app.debug or os.getenv("FLASK_ENV") == "development":
         app.logger.debug(f"Response: {request.method} {request.path} -> {response.status_code}")
     
@@ -346,33 +356,50 @@ def ping():
 
 @app.route("/health")
 def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
+    """Health check endpoint that never throws 500 errors"""
     status: Dict[str, Any] = {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "version": "1.4.0",
         "environment": os.getenv("FLASK_ENV", "development")
     }
+    
+    # Database health check with timeout and proper error handling
     try:
         import time
+        from sqlalchemy import text
         start = time.time()
-        result = db.session.execute(db.text("SELECT version()"))
-        db_version = result.scalar()
+        
+        # Use a simple query with timeout
+        result = db.session.execute(text("SELECT 1 as health_check"))
+        health_result = result.scalar()
         connection_time = round((time.time() - start) * 1000, 2)
         
-        database_info: Dict[str, Any] = {
-            "status": "healthy",
-            "connection_time_ms": connection_time,
-            "version": db_version.split()[0:2] if db_version else "unknown"
-        }
-        status["database"] = database_info
+        if health_result == 1:
+            # Get database version if possible
+            try:
+                version_result = db.session.execute(text("SELECT version()"))
+                db_version = version_result.scalar()
+                version_info = db_version.split()[0:2] if db_version else ["unknown"]
+            except Exception:
+                version_info = ["unknown"]
+            
+            database_info: Dict[str, Any] = {
+                "status": "healthy",
+                "connection_time_ms": connection_time,
+                "version": version_info
+            }
+            status["database"] = database_info
+        else:
+            raise Exception("Database health check query failed")
         
-  # Add connection pool info if available
+        # Add connection pool info if available
         if hasattr(db.engine, "pool"):
             try:
                 pool = db.engine.pool
                 pool_info: Dict[str, Any] = {}
                 
-  # Safely get pool size
+                # Safely get pool size
                 if hasattr(pool, 'size') and callable(getattr(pool, 'size')):
                     pool_info["size"] = getattr(pool, 'size')()
                 elif hasattr(pool, 'size'):
@@ -380,7 +407,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 else:
                     pool_info["size"] = 0
                 
-  # Safely get checked out connections
+                # Safely get checked out connections
                 if (hasattr(pool, 'checkedout') and
                         callable(getattr(pool, 'checkedout'))):
                     pool_info["checked_out"] = getattr(pool, 'checkedout')()
@@ -389,7 +416,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 else:
                     pool_info["checked_out"] = 0
                 
-  # Get overflow if available
+                # Get overflow if available
                 pool_info["overflow"] = getattr(pool, 'overflow', 0)
                 
                 status["database"]["pool"] = pool_info
@@ -397,19 +424,27 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
                 app.logger.debug(f"Could not get pool info: {pool_error}")
                 status["database"]["pool"] = {"error": "Pool info unavailable"}
             
-  # Warn if connection is slow
+        # Warn if connection is slow
         if connection_time > 1000:  # 1 second
             status["database"]["warning"] = "Slow database connection"
             
     except Exception as e:
-        app.logger.error(f"Database check failed: {e}")
+        # Log database error as warning, not error (since this is expected)
+        app.logger.warning(f"Database check failed: {e}")
         database_error: Dict[str, Any] = {
             "status": "unhealthy", 
             "error": str(e)
         }
         status["database"] = database_error
         status["status"] = "unhealthy"
-        return status, 503
+        # Return JSON response with 503 status but don't let it trigger error handlers
+        from flask import Response
+        import json
+        return Response(
+            json.dumps(status, indent=2),
+            status=503,
+            mimetype='application/json'
+        )
 
     try:
         from flask_jwt_extended import create_access_token
@@ -420,7 +455,7 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
         status["jwt"] = "unhealthy"
         status["status"] = "degraded"
 
-  # Check required environment variables
+    # Check required environment variables
     required_vars = ["AUTH_SECRET_KEY", "DATABASE_URL"]
     missing = [v for v in required_vars if not os.getenv(v)]
     if missing:
@@ -432,7 +467,14 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
         }
         status["environment"] = env_error
         status["status"] = "unhealthy"
-        return status, 503
+        # Return JSON response with 503 status but don't let it trigger error handlers
+        from flask import Response
+        import json
+        return Response(
+            json.dumps(status, indent=2),
+            status=503,
+            mimetype='application/json'
+        )
     else:
         env_healthy: Dict[str, Any] = {
             "status": "healthy",
@@ -441,6 +483,47 @@ def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
         status["environment"] = env_healthy
 
     return status
+
+
+@app.route("/health/basic")
+def basic_health_check():
+    """Basic health check endpoint that doesn't test database connectivity"""
+    return jsonify({
+        "status": "healthy",
+        "message": "BookVault API is running",
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.4.0",
+        "environment": os.getenv("FLASK_ENV", "development"),
+        "basic_check": True
+    })
+
+@app.route("/health/ready")
+def readiness_check():
+    """Readiness check for deployment platforms like Render"""
+    try:
+        # Simple check that doesn't depend on external services
+        return jsonify({
+            "status": "ready",
+            "message": "Service is ready to accept traffic",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.4.0"
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Readiness check failed: {e}")
+        return jsonify({
+            "status": "not_ready",
+            "message": "Service is not ready",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }), 503
+
+@app.route("/health/live")
+def liveness_check():
+    """Liveness check for deployment platforms"""
+    return jsonify({
+        "status": "alive",
+        "timestamp": datetime.now().isoformat()
+    }), 200
 
 
 @app.errorhandler(405)
@@ -501,6 +584,11 @@ def service_unavailable(error):
 def handle_exception(error):
     """Handle any unhandled exceptions"""
     import traceback
+    from werkzeug.exceptions import HTTPException
+    
+    # If it's an HTTP exception (like 503), let it pass through
+    if isinstance(error, HTTPException):
+        return error
     
     # Log the exception
     app.logger.error(f'Unhandled exception: {error}')

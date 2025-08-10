@@ -168,11 +168,31 @@ def register():  # Function: register
         return jsonify(response_data), 201
 
     except Exception as error:  # Exception handler
+        import traceback
         logger.error(f"Registration error: {error}")
-  # Rollback any partial database changes
-        db.session.rollback()
+        logger.error(f"Registration traceback: {traceback.format_exc()}")
+        
+        # Rollback any partial database changes
+        try:
+            db.session.rollback()
+        except Exception as rollback_error:
+            logger.error(f"Failed to rollback session: {rollback_error}")
+        
+        # Check if it's a database connection error
+        error_str = str(error).lower()
+        if any(db_error in error_str for db_error in [
+            'connection refused', 'connection to server', 'database', 
+            'psycopg2', 'sqlalchemy', 'operational error'
+        ]):
+            return jsonify({
+                'message': 'Database service is currently unavailable. Please try again later.',
+                'error_type': 'database_connection_error'
+            }), 503
+        
+        # For other errors, return generic 500
         return jsonify({
-            'message': 'Something went wrong during registration'
+            'message': 'Something went wrong during registration',
+            'error_type': 'internal_server_error'
         }), 500
 
 
@@ -239,10 +259,31 @@ def verify():  # Function: verify
         return jsonify({'message': 'Account verified successfully'}), 200
 
     except Exception as e:  # Exception handler
+        import traceback
         logger.error(f"Verification error: {e}")
-        db.session.rollback()
+        logger.error(f"Verification traceback: {traceback.format_exc()}")
+        
+        # Rollback any partial database changes
+        try:
+            db.session.rollback()
+        except Exception as rollback_error:
+            logger.error(f"Failed to rollback session: {rollback_error}")
+        
+        # Check if it's a database connection error
+        error_str = str(e).lower()
+        if any(db_error in error_str for db_error in [
+            'connection refused', 'connection to server', 'database', 
+            'psycopg2', 'sqlalchemy', 'operational error'
+        ]):
+            return jsonify({
+                'message': 'Database service is currently unavailable. Please try again later.',
+                'error_type': 'database_connection_error'
+            }), 503
+        
+        # For other errors, return generic 500
         return jsonify({
-            'message': 'Something went wrong during verification'
+            'message': 'Something went wrong during verification',
+            'error_type': 'internal_server_error'
         }), 500
 
 
@@ -340,8 +381,26 @@ def login():  # Function: login
         return jsonify(json_output), 200
 
     except Exception as e:  # Exception handler
+        import traceback
         logger.error(f"Login error: {e}")
-        return jsonify({'message': 'Something went wrong during login'}), 500
+        logger.error(f"Login traceback: {traceback.format_exc()}")
+        
+        # Check if it's a database connection error
+        error_str = str(e).lower()
+        if any(db_error in error_str for db_error in [
+            'connection refused', 'connection to server', 'database', 
+            'psycopg2', 'sqlalchemy', 'operational error'
+        ]):
+            return jsonify({
+                'message': 'Database service is currently unavailable. Please try again later.',
+                'error_type': 'database_connection_error'
+            }), 503
+        
+        # For other errors, return generic 500
+        return jsonify({
+            'message': 'Something went wrong during login',
+            'error_type': 'internal_server_error'
+        }), 500
 
 
 @auth_endpoint.route('/v1/token/refresh', methods=['POST'])

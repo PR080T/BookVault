@@ -1,4 +1,4 @@
-  # !/usr/bin/env python3
+# !/usr/bin/env python3
 """
 Database Initialization Script for BookVault
 
@@ -64,11 +64,9 @@ def check_environment():
         sys.exit(1)
 
     db_url = os.getenv('DATABASE_URL', '')  # Database connection
-    if not db_url.startswith('postgresql://') and \  # Conditional statement
-       not db_url.startswith('postgres://'):
+    if not db_url.startswith('postgresql://') and not db_url.startswith('postgres://'):
         prefix = db_url.split('://')[0] if '://' in db_url else 'unknown'
-        print("⚠️  Warning: DATABASE_URL doesn't appear to be a "
-              "PostgreSQL connection string")
+        print("⚠️  Warning: DATABASE_URL doesn't appear to be a PostgreSQL connection string")
         print(f"Current DATABASE_URL starts with: {prefix}")
 
     if db_url.startswith('postgres://'):  # Conditional statement

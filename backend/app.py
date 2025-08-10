@@ -354,177 +354,181 @@ def ping():
         "timestamp": datetime.now().isoformat()
     })
 
-@app.route("/health")
-def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
-    """Health check endpoint that never throws 500 errors"""
-    status: Dict[str, Any] = {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.4.0",
-        "environment": os.getenv("FLASK_ENV", "development")
-    }
+# @app.route("/health")
+# def health_check() -> Union[Dict[str, Any], Tuple[Dict[str, Any], int]]:
+#     """Health check endpoint that never throws 500 errors"""
+#     status: Dict[str, Any] = {
+#         "status": "healthy",
+#         "timestamp": datetime.now().isoformat(),
+#         "version": "1.4.0",
+#         "environment": os.getenv("FLASK_ENV", "development")
+#     }
     
-    # Database health check with timeout and proper error handling
-    try:
-        import time
-        from sqlalchemy import text
-        start = time.time()
+#     # Database health check with timeout and proper error handling
+#     try:
+#         import time
+#         from sqlalchemy import text
+#         start = time.time()
         
-        # Use a simple query with timeout
-        result = db.session.execute(text("SELECT 1 as health_check"))
-        health_result = result.scalar()
-        connection_time = round((time.time() - start) * 1000, 2)
+#         # Use a simple query with timeout
+#         result = db.session.execute(text("SELECT 1 as health_check"))
+#         health_result = result.scalar()
+#         connection_time = round((time.time() - start) * 1000, 2)
         
-        if health_result == 1:
-            # Get database version if possible
-            try:
-                version_result = db.session.execute(text("SELECT version()"))
-                db_version = version_result.scalar()
-                version_info = db_version.split()[0:2] if db_version else ["unknown"]
-            except Exception:
-                version_info = ["unknown"]
+#         if health_result == 1:
+#             # Get database version if possible
+#             try:
+#                 version_result = db.session.execute(text("SELECT version()"))
+#                 db_version = version_result.scalar()
+#                 version_info = db_version.split()[0:2] if db_version else ["unknown"]
+#             except Exception:
+#                 version_info = ["unknown"]
             
-            database_info: Dict[str, Any] = {
-                "status": "healthy",
-                "connection_time_ms": connection_time,
-                "version": version_info
-            }
-            status["database"] = database_info
-        else:
-            raise Exception("Database health check query failed")
+#             database_info: Dict[str, Any] = {
+#                 "status": "healthy",
+#                 "connection_time_ms": connection_time,
+#                 "version": version_info
+#             }
+#             status["database"] = database_info
+#         else:
+#             raise Exception("Database health check query failed")
         
-        # Add connection pool info if available
-        if hasattr(db.engine, "pool"):
-            try:
-                pool = db.engine.pool
-                pool_info: Dict[str, Any] = {}
+#         # Add connection pool info if available
+#         if hasattr(db.engine, "pool"):
+#             try:
+#                 pool = db.engine.pool
+#                 pool_info: Dict[str, Any] = {}
                 
-                # Safely get pool size
-                if hasattr(pool, 'size') and callable(getattr(pool, 'size')):
-                    pool_info["size"] = getattr(pool, 'size')()
-                elif hasattr(pool, 'size'):
-                    pool_info["size"] = getattr(pool, 'size', 0)
-                else:
-                    pool_info["size"] = 0
+#                 # Safely get pool size
+#                 if hasattr(pool, 'size') and callable(getattr(pool, 'size')):
+#                     pool_info["size"] = getattr(pool, 'size')()
+#                 elif hasattr(pool, 'size'):
+#                     pool_info["size"] = getattr(pool, 'size', 0)
+#                 else:
+#                     pool_info["size"] = 0
                 
-                # Safely get checked out connections
-                if (hasattr(pool, 'checkedout') and
-                        callable(getattr(pool, 'checkedout'))):
-                    pool_info["checked_out"] = getattr(pool, 'checkedout')()
-                elif hasattr(pool, 'checkedout'):
-                    pool_info["checked_out"] = getattr(pool, 'checkedout', 0)
-                else:
-                    pool_info["checked_out"] = 0
+#                 # Safely get checked out connections
+#                 if (hasattr(pool, 'checkedout') and
+#                         callable(getattr(pool, 'checkedout'))):
+#                     pool_info["checked_out"] = getattr(pool, 'checkedout')()
+#                 elif hasattr(pool, 'checkedout'):
+#                     pool_info["checked_out"] = getattr(pool, 'checkedout', 0)
+#                 else:
+#                     pool_info["checked_out"] = 0
                 
-                # Get overflow if available
-                pool_info["overflow"] = getattr(pool, 'overflow', 0)
+#                 # Get overflow if available
+#                 pool_info["overflow"] = getattr(pool, 'overflow', 0)
                 
-                status["database"]["pool"] = pool_info
-            except Exception as pool_error:
-                app.logger.debug(f"Could not get pool info: {pool_error}")
-                status["database"]["pool"] = {"error": "Pool info unavailable"}
+#                 status["database"]["pool"] = pool_info
+#             except Exception as pool_error:
+#                 app.logger.debug(f"Could not get pool info: {pool_error}")
+#                 status["database"]["pool"] = {"error": "Pool info unavailable"}
             
-        # Warn if connection is slow
-        if connection_time > 1000:  # 1 second
-            status["database"]["warning"] = "Slow database connection"
+#         # Warn if connection is slow
+#         if connection_time > 1000:  # 1 second
+#             status["database"]["warning"] = "Slow database connection"
             
-    except Exception as e:
-        # Log database error as warning, not error (since this is expected)
-        app.logger.warning(f"Database check failed: {e}")
-        database_error: Dict[str, Any] = {
-            "status": "unhealthy", 
-            "error": str(e)
-        }
-        status["database"] = database_error
-        status["status"] = "unhealthy"
-        # Return JSON response with 503 status but don't let it trigger error handlers
-        from flask import Response
-        import json
-        return Response(
-            json.dumps(status, indent=2),
-            status=503,
-            mimetype='application/json'
-        )
+#     except Exception as e:
+#         # Log database error as warning, not error (since this is expected)
+#         app.logger.warning(f"Database check failed: {e}")
+#         database_error: Dict[str, Any] = {
+#             "status": "unhealthy", 
+#             "error": str(e)
+#         }
+#         status["database"] = database_error
+#         status["status"] = "unhealthy"
+#         # Return JSON response with 503 status but don't let it trigger error handlers
+#         from flask import Response
+#         import json
+#         return Response(
+#             json.dumps(status, indent=2),
+#             status=503,
+#             mimetype='application/json'
+#         )
 
-    try:
-        from flask_jwt_extended import create_access_token
-        create_access_token(identity="health")
-        status["jwt"] = "healthy"
-    except Exception as e:
-        app.logger.error(f"JWT check failed: {e}")
-        status["jwt"] = "unhealthy"
-        status["status"] = "degraded"
+#     try:
+#         from flask_jwt_extended import create_access_token
+#         create_access_token(identity="health")
+#         status["jwt"] = "healthy"
+#     except Exception as e:
+#         app.logger.error(f"JWT check failed: {e}")
+#         status["jwt"] = "unhealthy"
+#         status["status"] = "degraded"
 
-    # Check required environment variables
-    required_vars = ["AUTH_SECRET_KEY", "DATABASE_URL"]
-    missing = [v for v in required_vars if not os.getenv(v)]
-    if missing:
-        env_error: Dict[str, Any] = {
-            "status": "unhealthy",
-            "missing_variables": missing,
-            "message": (f"Missing required environment variables: "
-                        f"{', '.join(missing)}")
-        }
-        status["environment"] = env_error
-        status["status"] = "unhealthy"
-        # Return JSON response with 503 status but don't let it trigger error handlers
-        from flask import Response
-        import json
-        return Response(
-            json.dumps(status, indent=2),
-            status=503,
-            mimetype='application/json'
-        )
-    else:
-        env_healthy: Dict[str, Any] = {
-            "status": "healthy",
-            "variables_configured": len(required_vars)
-        }
-        status["environment"] = env_healthy
+#     # Check required environment variables
+#     required_vars = ["AUTH_SECRET_KEY", "DATABASE_URL"]
+#     missing = [v for v in required_vars if not os.getenv(v)]
+#     if missing:
+#         env_error: Dict[str, Any] = {
+#             "status": "unhealthy",
+#             "missing_variables": missing,
+#             "message": (f"Missing required environment variables: "
+#                         f"{', '.join(missing)}")
+#         }
+#         status["environment"] = env_error
+#         status["status"] = "unhealthy"
+#         # Return JSON response with 503 status but don't let it trigger error handlers
+#         from flask import Response
+#         import json
+#         return Response(
+#             json.dumps(status, indent=2),
+#             status=503,
+#             mimetype='application/json'
+#         )
+#     else:
+#         env_healthy: Dict[str, Any] = {
+#             "status": "healthy",
+#             "variables_configured": len(required_vars)
+#         }
+#         status["environment"] = env_healthy
 
-    return status
+#     return status
 
 
-@app.route("/health/basic")
-def basic_health_check():
-    """Basic health check endpoint that doesn't test database connectivity"""
-    return jsonify({
-        "status": "healthy",
-        "message": "BookVault API is running",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.4.0",
-        "environment": os.getenv("FLASK_ENV", "development"),
-        "basic_check": True
-    })
+# @app.route("/health/basic")
+# def basic_health_check():
+#     """Basic health check endpoint that doesn't test database connectivity"""
+#     return jsonify({
+#         "status": "healthy",
+#         "message": "BookVault API is running",
+#         "timestamp": datetime.now().isoformat(),
+#         "version": "1.4.0",
+#         "environment": os.getenv("FLASK_ENV", "development"),
+#         "basic_check": True
+#     })
 
-@app.route("/health/ready")
-def readiness_check():
-    """Readiness check for deployment platforms like Render"""
-    try:
-        # Simple check that doesn't depend on external services
-        return jsonify({
-            "status": "ready",
-            "message": "Service is ready to accept traffic",
-            "timestamp": datetime.now().isoformat(),
-            "version": "1.4.0"
-        }), 200
-    except Exception as e:
-        app.logger.error(f"Readiness check failed: {e}")
-        return jsonify({
-            "status": "not_ready",
-            "message": "Service is not ready",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }), 503
+# @app.route("/health/ready")
+# def readiness_check():
+#     """Readiness check for deployment platforms like Render"""
+#     try:
+#         # Simple check that doesn't depend on external services
+#         return jsonify({
+#             "status": "ready",
+#             "message": "Service is ready to accept traffic",
+#             "timestamp": datetime.now().isoformat(),
+#             "version": "1.4.0"
+#         }), 200
+#     except Exception as e:
+#         app.logger.error(f"Readiness check failed: {e}")
+#         return jsonify({
+#             "status": "not_ready",
+#             "message": "Service is not ready",
+#             "error": str(e),
+#             "timestamp": datetime.now().isoformat()
+#         }), 503
 
-@app.route("/health/live")
-def liveness_check():
-    """Liveness check for deployment platforms"""
-    return jsonify({
-        "status": "alive",
-        "timestamp": datetime.now().isoformat()
-    }), 200
+# @app.route("/health/live")
+# def liveness_check():
+#     """Liveness check for deployment platforms"""
+#     return jsonify({
+#         "status": "alive",
+#         "timestamp": datetime.now().isoformat()
+#     }), 200
 
+# ✅ Lightweight health check — no DB calls, no auth
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
 
 @app.errorhandler(405)
 def method_not_allowed(error):

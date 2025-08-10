@@ -65,6 +65,11 @@ app = Flask(__name__)  # Flask application instance
 # ✅ Enable CORS for your Vercel frontend
 CORS(app, resources={r"/*": {"origins": ["https://book-vault-pi.vercel.app"]}})
 
+# ✅ Lightweight health check — no DB calls, no auth
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
+
   # Configure CORS (Cross-Origin Resource Sharing) to allow frontend to connect to backend
 def get_cors_origins():  # Getter method for cors_origins
     """Get allowed origins from environment variable with development fallbacks"""
@@ -525,10 +530,7 @@ def ping():
 #         "timestamp": datetime.now().isoformat()
 #     }), 200
 
-# ✅ Lightweight health check — no DB calls, no auth
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"}), 200
+
 
 @app.errorhandler(405)
 def method_not_allowed(error):

@@ -20,6 +20,11 @@ import globalRouter from "./GlobalRouter";  // React Router for navigation
 import { AnimatePresence } from "framer-motion";
 import { StatsProvider } from "./contexts/StatsContext";
 
+// Import auth debug utilities in development
+if (import.meta.env.DEV) {
+  import("./services/auth-debug.js");
+}
+
 function PrivateRoute({ children }) {
   const auth = AuthService.getCurrentUser()
   return auth ? children : <Navigate to="/login" />;

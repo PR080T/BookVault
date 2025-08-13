@@ -12,11 +12,9 @@ const api = axios.create({  // API call to backend
   timeout: 15000,  // Reduced timeout to 15 seconds for better UX
   headers: {
     'Content-Type': 'application/json',
-  },
-  // Add retry configuration
-  validateStatus: function (status) {
-    return status < 500;  // Resolve only if the status code is less than 500
   }
+  // IMPORTANT: Use axios default validateStatus (2xx). This ensures 401/403
+  // trigger the error interceptor so we can refresh tokens and redirect.
 });
 
   // Add retry functionality for network errors
@@ -59,6 +57,11 @@ api.interceptors.request.use(
       const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
       if (user.access_token) {
         config.headers.Authorization = `Bearer ${user.access_token}`;
+        if (import.meta.env.DEV) {
+          console.log(`Adding auth token to ${config.method?.toUpperCase()} ${config.url}`);
+        }
+      } else if (import.meta.env.DEV) {
+        console.log(`No auth token found for ${config.method?.toUpperCase()} ${config.url}`);
       }
     } catch (error) {
       console.warn('Failed to parse auth user from localStorage:', error);

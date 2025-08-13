@@ -56,6 +56,22 @@ const login = async (email, password) => {
         if (error.isNetworkError) {
             throw new Error("Unable to connect to server. Please check your internet connection and try again.");
         }
+        
+        // Handle specific HTTP error codes
+        if (error.response?.status === 401) {
+            throw new Error("Invalid email or password. Please check your credentials and try again.");
+        }
+        
+        if (error.response?.status === 403) {
+            const message = error.response.data?.message || "Access denied. Your account may be inactive or unverified.";
+            throw new Error(message);
+        }
+        
+        if (error.response?.status === 422) {
+            const message = error.response.data?.message || "Invalid input. Please check your email and password.";
+            throw new Error(message);
+        }
+        
         throw error;
     }
 };

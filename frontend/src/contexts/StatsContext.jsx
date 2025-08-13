@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';  // React library import
 import BooksService from '../services/books.service';  // Service layer import for API communication
+import AuthService from '../services/auth.service.jsx';
 
 const StatsContext = createContext();
 
@@ -32,6 +33,13 @@ const StatsProvider = ({ children }) => {
   // Only show loading for initial fetch or forced refresh
             if (!lastFetch || force) {
                 setLoading(true);  // State update
+            }
+
+            // Guard: only fetch stats when authenticated with a valid token
+            const user = AuthService.getCurrentUser ? AuthService.getCurrentUser() : null;
+            if (!user || !user.access_token) {
+                setLoading(false);
+                return;
             }
             
             const response = await BooksService.getStats();

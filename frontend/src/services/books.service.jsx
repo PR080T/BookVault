@@ -160,12 +160,9 @@ const status = async (isbn) => {
  */
 const getStats = async () => {
     try {
-        // Get token from localStorage or your auth context
-        const token = localStorage.getItem('access_token');
-        const config = token
-            ? { headers: { Authorization: `Bearer ${token}` } }
-            : {};
-        return await apiWithRetry.get('/v1/books/stats', config);
+        // The API interceptor will automatically add the Authorization header
+        // from the auth_user object in localStorage
+        return await apiWithRetry.get('/v1/books/stats');
     } catch (error) {
         console.error('Error fetching reading stats:', error);
         if (error.response?.status === 401) {

@@ -62,9 +62,6 @@ except ImportError:  # Exception handler
 app = Flask(__name__)  # Flask application instance
 
 
-# ✅ Enable CORS for your Vercel frontend
-CORS(app, resources={r"/*": {"origins": ["https://book-vault-pi.vercel.app"]}})
-
 # ✅ Lightweight health check — no DB calls, no auth
 @app.route("/health", methods=["GET"])
 def health():
@@ -81,6 +78,9 @@ def get_cors_origins():  # Getter method for cors_origins
         origin = origin.strip()
         if origin:
             origins.append(origin)
+    
+    # Add production frontend URL
+    origins.append("https://book-vault-pi.vercel.app")
     
     # Add localhost addresses for development if no origins specified or not in production
     if not origins or os.getenv("FLASK_ENV") != "production":

@@ -100,8 +100,14 @@ def register():  # Function: register
         if not name:  # Conditional statement
             return jsonify({'message': 'Name cannot be empty'}), 422
         
-        if len(name) > 255:  # Conditional statement
-            return jsonify({
+            if not current_user:  # Conditional statement
+                return jsonify({'msg': 'Invalid credentials'}), 401
+        
+            if hasattr(current_user, 'is_active') and not current_user.is_active:
+                return jsonify({'msg': 'Activate your account'}), 403
+        
+            if hasattr(current_user, 'is_verified') and not current_user.is_verified:
+                return jsonify({'msg': 'Account not verified'}), 403
                 'message': 'Name must be less than 255 characters'
             }), 422
 
@@ -303,19 +309,15 @@ def login():  # Function: login
   # Validate request payload
         if not request.json:  # Conditional statement
             return jsonify({'message': 'Request must contain JSON data'}), 400
-        
+
         if "email" not in request.json or "password" not in request.json:  # Conditional statement
-            return jsonify({
-                'message': 'Missing required fields: email, password'
-            }), 422
+            return jsonify({'message': 'Missing required fields: email, password'}), 422
 
         email = request.json["email"].strip().lower()
         password = request.json["password"]
 
         if not email or not password:  # Conditional statement
-            return jsonify({
-                'message': 'Email and password cannot be empty'
-            }), 422
+            return jsonify({'message': 'Email and password cannot be empty'}), 422
 
   # Find user by email
         current_user = User.find_by_email(email)

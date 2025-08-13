@@ -13,6 +13,7 @@ from auth.decorators import disable_route
 from rate_limiter import rate_limit
 import logging  # Application logging
 import re
+from werkzeug.security import generate_password_hash, check_password_hash
 
   # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -100,14 +101,8 @@ def register():  # Function: register
         if not name:  # Conditional statement
             return jsonify({'message': 'Name cannot be empty'}), 422
         
-            if not current_user:  # Conditional statement
-                return jsonify({'msg': 'Invalid credentials'}), 401
-        
-            if hasattr(current_user, 'is_active') and not current_user.is_active:
-                return jsonify({'msg': 'Activate your account'}), 403
-        
-            if hasattr(current_user, 'is_verified') and not current_user.is_verified:
-                return jsonify({'msg': 'Account not verified'}), 403
+        if len(name) > 255:  # Conditional statement
+            return jsonify({
                 'message': 'Name must be less than 255 characters'
             }), 422
 
@@ -334,7 +329,7 @@ def login():  # Function: login
             }), 403
 
   # Verify password
-        if not User.verify_hash(password, current_user.password):  # Conditional statement
+        if not check_password_hash(current_user.password, password):  # Conditional statement
             return jsonify({'message': 'Invalid email or password'}), 401
 
   # Check if account is active

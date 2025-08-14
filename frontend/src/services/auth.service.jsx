@@ -8,11 +8,16 @@ const register = async (email, name, password) => {
             throw new Error(`Server unavailable: ${connectionStatus.message}`);
         }
 
-        return await apiWithRetry.post("/v1/register", {
+        const response = await apiWithRetry.post("/v1/register", {
             email,
             name,
             password,
         });
+        if (response.data && response.data.access_token) {
+            localStorage.setItem("access_token", response.data.access_token);
+            localStorage.setItem("auth_user", JSON.stringify(response.data));
+        }
+        return response;
     } catch (error) {
         if (error.isNetworkError) {
             throw new Error("Unable to connect to server. Please check your internet connection and try again.");
@@ -45,11 +50,10 @@ const login = async (email, password) => {
             email,
             password,
         });
-
-        if (response.data.access_token) {
+        if (response.data && response.data.access_token) {
+            localStorage.setItem("access_token", response.data.access_token);
             localStorage.setItem("auth_user", JSON.stringify(response.data));
         }
-
         return response.data;
     } catch (error) {
   // Enhanced error handling

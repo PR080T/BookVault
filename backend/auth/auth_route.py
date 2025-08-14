@@ -152,21 +152,23 @@ def register():  # Function: register
         
         new_verification.save_to_db()
 
-        response_data = {
+        # Generate tokens for new user
+        access_token = create_access_token(
+            identity=email,
+            additional_claims={"role": user_obj.role, "id": user_obj.id}
+        )
+        refresh_token = create_refresh_token(identity=email)
+        user_schema = UserSchema()
+        json_output = user_schema.dump(user_obj)
+        json_output.update({
+            'access_token': access_token,
+            'refresh_token': refresh_token,
             'message': f'Account with email {email} was created successfully'
-        }
-        
-  # Include verification code in response only if verification is
-  # required
-  # and we're in development mode
-        if (require_verification and  # Conditional statement
-                os.environ.get("FLASK_ENV") == "development"):
-            response_data['verification_code'] = code
-            response_data['note'] = (
-                'Verification code included for development only'
-            )
-
-        return jsonify(response_data), 201
+        })
+        if (require_verification and os.environ.get("FLASK_ENV") == "development"):
+            json_output['verification_code'] = code
+            json_output['note'] = 'Verification code included for development only'
+        return jsonify(json_output), 201
 
     except Exception as error:  # Exception handler
         import traceback

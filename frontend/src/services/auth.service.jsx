@@ -13,8 +13,9 @@ const register = async (email, name, password) => {
             name,
             password,
         });
-        if (response.data && response.data.access_token) {
+        if (response.data && response.data.access_token && response.data.refresh_token) {
             localStorage.setItem("access_token", response.data.access_token);
+            localStorage.setItem("refresh_token", response.data.refresh_token);
             localStorage.setItem("auth_user", JSON.stringify(response.data));
         }
         return response;
@@ -50,8 +51,9 @@ const login = async (email, password) => {
             email,
             password,
         });
-        if (response.data && response.data.access_token) {
+        if (response.data && response.data.access_token && response.data.refresh_token) {
             localStorage.setItem("access_token", response.data.access_token);
+            localStorage.setItem("refresh_token", response.data.refresh_token);
             localStorage.setItem("auth_user", JSON.stringify(response.data));
         }
         return response.data;
